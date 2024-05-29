@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "messages",
+  "info": {
+    "singularName": "message",
+    "pluralName": "messages",
+    "displayName": "message"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "contenu": {
+      "type": "text"
+    },
+    "expediteur": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "messages"
+    },
+    "conversation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::conversation.conversation",
+      "inversedBy": "messages"
+    },
+    "horodatage": {
+      "type": "datetime"
+    },
+    "image": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "audio": {
+      "allowedTypes": [
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "document": {
+      "allowedTypes": [
+        "files"
+      ],
+      "type": "media",
+      "multiple": false
+    }
+  }
+}

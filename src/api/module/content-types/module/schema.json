@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "modules",
+  "info": {
+    "singularName": "module",
+    "pluralName": "modules",
+    "displayName": "module",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": false
+    },
+    "parcour": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::parcour.parcour",
+      "inversedBy": "modules"
+    },
+    "lessons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lesson.lesson",
+      "mappedBy": "module"
+    },
+    "resources": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::resource.resource",
+      "mappedBy": "module"
+    }
+  }
+}

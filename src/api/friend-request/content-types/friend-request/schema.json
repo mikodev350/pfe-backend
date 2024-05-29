@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "friend_requests",
+  "info": {
+    "singularName": "friend-request",
+    "pluralName": "friend-requests",
+    "displayName": "FriendRequest"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "expediteur": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "friend_requests"
+    },
+    "destinataire": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "friend_requests"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "attente",
+        "accepté",
+        "rejeté"
+      ],
+      "default": "attente"
+    }
+  }
+}

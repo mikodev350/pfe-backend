@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lessons",
+  "info": {
+    "singularName": "lesson",
+    "pluralName": "lessons",
+    "displayName": "lesson"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string"
+    },
+    "module": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::module.module",
+      "inversedBy": "lessons"
+    },
+    "resources": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::resource.resource",
+      "mappedBy": "lesson"
+    }
+  }
+}

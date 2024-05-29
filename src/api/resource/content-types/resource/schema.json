@@ -1,0 +1,78 @@
+{
+  "kind": "collectionType",
+  "collectionName": "resources",
+  "info": {
+    "singularName": "resource",
+    "pluralName": "resources",
+    "displayName": "resource"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string"
+    },
+    "format": {
+      "type": "enumeration",
+      "enum": [
+        "cours",
+        "devoir",
+        "ressource numérique"
+      ]
+    },
+    "parcour": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::parcour.parcour",
+      "inversedBy": "resources"
+    },
+    "module": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::module.module",
+      "inversedBy": "resources"
+    },
+    "lesson": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::lesson.lesson",
+      "inversedBy": "resources"
+    },
+    "note": {
+      "type": "text"
+    },
+    "image": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "audio": {
+      "allowedTypes": [
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "pdf": {
+      "allowedTypes": [
+        "files"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "video": {
+      "allowedTypes": [
+        "videos"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "link": {
+      "type": "string"
+    }
+  }
+}
