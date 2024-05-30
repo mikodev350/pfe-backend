@@ -55,4 +55,25 @@ module.exports = {
       return ctx.internalServerError("Something went wrong");
     }
   },
+  async find(ctx) {
+    try {
+      // Log de débogage
+      console.log("Find request received");
+
+      // Récupérer tous les parcours
+      const pathways = await strapi.entityService.findMany(
+        "api::parcour.parcour"
+      );
+
+      console.log("Retrieved pathways:", pathways);
+
+      ctx.send({
+        message: "Pathways retrieved successfully",
+        data: pathways,
+      });
+    } catch (error) {
+      console.error("Error retrieving pathways:", error);
+      ctx.throw(500, "An error occurred while retrieving the pathways");
+    }
+  },
 };

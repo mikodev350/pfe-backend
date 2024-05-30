@@ -1020,13 +1020,14 @@ export interface ApiParcourParcour extends Schema.CollectionType {
     singularName: 'parcour';
     pluralName: 'parcours';
     displayName: 'parcour';
+    description: '';
   };
   options: {
     draftAndPublish: true;
   };
   attributes: {
     nom: Attribute.String & Attribute.Required;
-    type: Attribute.Enumeration<['Acad\u00E9mique', 'Continue']> &
+    type: Attribute.Enumeration<['acad\u00E9mique', 'continue']> &
       Attribute.Required;
     etablissement: Attribute.String;
     modules: Attribute.Relation<
@@ -1039,6 +1040,7 @@ export interface ApiParcourParcour extends Schema.CollectionType {
       'oneToMany',
       'api::resource.resource'
     >;
+    autoApprentissage: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

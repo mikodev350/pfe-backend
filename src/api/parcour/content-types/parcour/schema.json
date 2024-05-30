@@ -4,7 +4,8 @@
   "info": {
     "singularName": "parcour",
     "pluralName": "parcours",
-    "displayName": "parcour"
+    "displayName": "parcour",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -18,8 +19,8 @@
     "type": {
       "type": "enumeration",
       "enum": [
-        "Académique",
-        "Continue"
+        "académique",
+        "continue"
       ],
       "required": true
     },
@@ -37,6 +38,10 @@
       "relation": "oneToMany",
       "target": "api::resource.resource",
       "mappedBy": "parcour"
+    },
+    "autoApprentissage": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
