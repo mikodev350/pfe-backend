@@ -695,7 +695,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
     username: Attribute.String &
@@ -738,6 +737,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'plugin::users-permissions.user',
       'oneToMany',
       'api::message.message'
+    >;
+    parcours: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::parcour.parcour'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -903,7 +907,7 @@ export interface ApiLessonLesson extends Schema.CollectionType {
     >;
     resources: Attribute.Relation<
       'api::lesson.lesson',
-      'oneToMany',
+      'manyToMany',
       'api::resource.resource'
     >;
     createdAt: Attribute.DateTime;
@@ -993,7 +997,7 @@ export interface ApiModuleModule extends Schema.CollectionType {
     >;
     resources: Attribute.Relation<
       'api::module.module',
-      'oneToMany',
+      'manyToMany',
       'api::resource.resource'
     >;
     createdAt: Attribute.DateTime;
@@ -1035,12 +1039,17 @@ export interface ApiParcourParcour extends Schema.CollectionType {
       'oneToMany',
       'api::module.module'
     >;
+    autoApprentissage: Attribute.Boolean & Attribute.DefaultTo<false>;
     resources: Attribute.Relation<
       'api::parcour.parcour',
-      'oneToMany',
+      'manyToMany',
       'api::resource.resource'
     >;
-    autoApprentissage: Attribute.Boolean & Attribute.DefaultTo<false>;
+    users_permissions_user: Attribute.Relation<
+      'api::parcour.parcour',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1065,6 +1074,7 @@ export interface ApiResourceResource extends Schema.CollectionType {
     singularName: 'resource';
     pluralName: 'resources';
     displayName: 'resource';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -1074,19 +1084,19 @@ export interface ApiResourceResource extends Schema.CollectionType {
     format: Attribute.Enumeration<
       ['cours', 'devoir', 'ressource num\u00E9rique']
     >;
-    parcour: Attribute.Relation<
+    parcours: Attribute.Relation<
       'api::resource.resource',
-      'manyToOne',
+      'manyToMany',
       'api::parcour.parcour'
     >;
-    module: Attribute.Relation<
+    modules: Attribute.Relation<
       'api::resource.resource',
-      'manyToOne',
+      'manyToMany',
       'api::module.module'
     >;
-    lesson: Attribute.Relation<
+    lessons: Attribute.Relation<
       'api::resource.resource',
-      'manyToOne',
+      'manyToMany',
       'api::lesson.lesson'
     >;
     note: Attribute.Text;

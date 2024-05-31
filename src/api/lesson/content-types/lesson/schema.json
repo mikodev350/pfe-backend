@@ -22,9 +22,9 @@
     },
     "resources": {
       "type": "relation",
-      "relation": "oneToMany",
+      "relation": "manyToMany",
       "target": "api::resource.resource",
-      "mappedBy": "lesson"
+      "mappedBy": "lessons"
     }
   }
 }

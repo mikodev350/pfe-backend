@@ -39,15 +39,26 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
 
   async create(ctx) {
     try {
-      const { data } = ctx.request.body;
+      const { name, module } = ctx.request.body;
 
+      // Vérifiez si le module existe
+      const existingModule = await strapi.entityService.findOne(
+        "api::module.module",
+        module
+      );
+
+      if (!existingModule) {
+        return ctx.throw(404, "Module not found");
+      }
+
+      // Créez la leçon
       const createdLesson = await strapi.entityService.create(
         "api::lesson.lesson",
         {
           data: {
-            nom: data.nom,
-            module: data.moduleId,
-            publishedAt: new Date(), // Automatically publish the lesson
+            nom: name,
+            module: module,
+            publishedAt: new Date(), // Publier automatiquement la leçon
           },
         }
       );

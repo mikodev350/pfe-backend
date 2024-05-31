@@ -33,15 +33,21 @@
       "target": "api::module.module",
       "mappedBy": "parcour"
     },
-    "resources": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::resource.resource",
-      "mappedBy": "parcour"
-    },
     "autoApprentissage": {
       "type": "boolean",
       "default": false
+    },
+    "resources": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::resource.resource",
+      "mappedBy": "parcours"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "parcours"
     }
   }
 }
