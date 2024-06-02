@@ -34,9 +34,12 @@ module.exports = createCoreController(
           audio: audio?.id || null,
           pdf: pdf?.id || null,
           video: video?.id || null,
+          parcours: parcours,
+          modules: module,
+          lessons: lesson,
+          publishedAt: new Date(), // Définir la date de publication actuelle
         };
 
-        console.log(createData);
         // Créer la ressource
         const newResource = await strapi.entityService.create(
           "api::resource.resource",
@@ -44,57 +47,6 @@ module.exports = createCoreController(
             data: createData,
           }
         );
-
-        // Associer la ressource aux parcours
-        for (const parcourId of parcours) {
-          await strapi.entityService.update("api::parcour.parcour", parcourId, {
-            data: {
-              resources: [
-                ...(
-                  await strapi.entityService.findOne(
-                    "api::parcour.parcour",
-                    parcourId
-                  )
-                ).resources,
-                newResource.id,
-              ],
-            },
-          });
-        }
-
-        // Associer la ressource aux modules
-        for (const moduleId of module) {
-          await strapi.entityService.update("api::module.module", moduleId, {
-            data: {
-              resources: [
-                ...(
-                  await strapi.entityService.findOne(
-                    "api::module.module",
-                    moduleId
-                  )
-                ).resources,
-                newResource.id,
-              ],
-            },
-          });
-        }
-
-        // Associer la ressource aux leçons
-        for (const lessonId of lesson) {
-          await strapi.entityService.update("api::lesson.lesson", lessonId, {
-            data: {
-              resources: [
-                ...(
-                  await strapi.entityService.findOne(
-                    "api::lesson.lesson",
-                    lessonId
-                  )
-                ).resources,
-                newResource.id,
-              ],
-            },
-          });
-        }
 
         ctx.send({
           message: "Resource created successfully",
@@ -104,6 +56,86 @@ module.exports = createCoreController(
         ctx.throw(500, "Error creating resource");
       }
     },
+
+    /****************************************************/
+    async getAllResources(ctx) {
+      const resources = await strapi.entityService.findMany(
+        "api::resource.resource",
+        {
+          populate: [
+            "parcours",
+            "module",
+            "lesson",
+            "image",
+            "audio",
+            "pdf",
+            "video",
+          ],
+        }
+      );
+      ctx.send(resources);
+    },
+    async find(ctx) {
+      const { page = 1, pageSize = 10, section, search } = ctx.query;
+
+      const filters = {};
+      if (section) {
+        filters.section = section;
+      }
+      if (search) {
+        filters.name = { $contains: search };
+      }
+
+      const start = (page - 1) * pageSize;
+      const limit = pageSize;
+
+      const [resources, total] = await Promise.all([
+        strapi.entityService.findMany("api::resource.resource", {
+          filters,
+          populate: [
+            "parcours",
+            "module",
+            "lesson",
+            "image",
+            "audio",
+            "pdf",
+            "video",
+          ],
+          start,
+          limit,
+        }),
+        strapi.entityService.count("api::resource.resource", {
+          filters,
+        }),
+      ]);
+
+      const totalPages = Math.ceil(total / pageSize);
+
+      ctx.send({
+        data: resources,
+        total,
+        totalPages,
+      });
+    },
+    // async find(ctx) {
+    //   const resources = await strapi.entityService.findMany(
+    //     "api::resource.resource",
+    //     {
+    //       populate: [
+    //         "parcours",
+    //         "module",
+    //         "lesson",
+    //         "image",
+    //         "audio",
+    //         "pdf",
+    //         "video",
+    //       ],
+    //     }
+    //   );
+    //   console.log(resources);
+    //   ctx.send(resources);
+    // },
+    /****************************************************/
   })
 );
 

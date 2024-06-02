@@ -2,8 +2,8 @@ module.exports = {
   routes: [
     {
       method: "GET",
-      path: "/find-parcours",
-      handler: "custom.getParcours",
+      path: "/get-all-parcours",
+      handler: "custom.getAllParcours",
       config: {
         policies: [],
         middlewares: [],
@@ -11,8 +11,8 @@ module.exports = {
     },
     {
       method: "GET",
-      path: "/find-by-parcours/:parcoursId",
-      handler: "custom.getModulesByParcours",
+      path: "/get-all-modules",
+      handler: "custom.getAllModules",
       config: {
         policies: [],
         middlewares: [],
@@ -20,8 +20,8 @@ module.exports = {
     },
     {
       method: "GET",
-      path: "/find-by-module/:moduleId",
-      handler: "custom.getLessonsByModule",
+      path: "/get-all-lessons",
+      handler: "custom.getAllLessons",
       config: {
         policies: [],
         middlewares: [],

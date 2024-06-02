@@ -88,6 +88,24 @@
       "relation": "oneToMany",
       "target": "api::parcour.parcour",
       "mappedBy": "users_permissions_user"
+    },
+    "modules": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::module.module",
+      "mappedBy": "users_permissions_user"
+    },
+    "lessons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lesson.lesson",
+      "mappedBy": "users_permissions_user"
+    },
+    "resources": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::resource.resource",
+      "mappedBy": "users_permissions_user"
     }
   }
 }

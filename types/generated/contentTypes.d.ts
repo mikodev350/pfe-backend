@@ -743,6 +743,21 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToMany',
       'api::parcour.parcour'
     >;
+    modules: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::module.module'
+    >;
+    lessons: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::lesson.lesson'
+    >;
+    resources: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::resource.resource'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -894,6 +909,7 @@ export interface ApiLessonLesson extends Schema.CollectionType {
     singularName: 'lesson';
     pluralName: 'lessons';
     displayName: 'lesson';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -909,6 +925,11 @@ export interface ApiLessonLesson extends Schema.CollectionType {
       'api::lesson.lesson',
       'manyToMany',
       'api::resource.resource'
+    >;
+    users_permissions_user: Attribute.Relation<
+      'api::lesson.lesson',
+      'manyToOne',
+      'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -999,6 +1020,11 @@ export interface ApiModuleModule extends Schema.CollectionType {
       'api::module.module',
       'manyToMany',
       'api::resource.resource'
+    >;
+    users_permissions_user: Attribute.Relation<
+      'api::module.module',
+      'manyToOne',
+      'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -1105,6 +1131,11 @@ export interface ApiResourceResource extends Schema.CollectionType {
     pdf: Attribute.Media;
     video: Attribute.Media;
     link: Attribute.String;
+    users_permissions_user: Attribute.Relation<
+      'api::resource.resource',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

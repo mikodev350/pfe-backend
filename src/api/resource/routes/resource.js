@@ -15,11 +15,21 @@ module.exports = createCoreRouter("api::resource.resource", {
       middlewares: [],
     },
   },
+
   routes: [
     {
       method: "POST",
       path: "/resources",
       handler: "resource.create",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "GET",
+      path: "/resources",
+      handler: "resource.find",
       config: {
         policies: [],
         middlewares: [],

@@ -1,59 +1,98 @@
 "use strict";
 
 module.exports = {
-  async getParcours(ctx) {
-    const user = ctx.state.user;
+  async getAllParcours(ctx) {
+    // ctx.state.user.id;
     const data = await strapi.db.query("api::parcour.parcour").findMany({
       populate: ["users_permissions_user"],
       where: {
-        // user: user.id,
         users_permissions_user: {
-          id: user.id,
+          id: ctx.state.user.id,
         },
       },
     });
-
     const parcours = data.map((parcour) => ({
       id: parcour.id,
       name: parcour.nom,
     }));
     ctx.send(parcours);
   },
-
-  // modules: [
-  //   { id: 1, name: "Module 1", parcoursId: 1 },
-  //   { id: 2, name: "Module 2", parcoursId: 1 },
-  //   { id: 3, name: "Module 3", parcoursId: 2 },
-  //   { id: 4, name: "Module 4", parcoursId: 2 },
-  //   { id: 5, name: "Module 5", parcoursId: 2 },
-  // ],
-  async getModulesByParcours(ctx) {
-    // const user = ctx.state.user; // Obtenir l'utilisateur connecté
-    const { parcoursId } = ctx.params;
-
+  async getAllModules(ctx) {
     const data = await strapi.db.query("api::module.module").findMany({
-      populate: ["parcour"],
+      populate: ["users_permissions_user", "parcour"],
       where: {
-        parcour: {
-          id: parcoursId,
+        users_permissions_user: {
+          id: ctx.state.user.id,
         },
-      }, // Filtrer par parcours et utilisateur
+      },
     });
-    console.log(data);
-
     const modules = data.map((module) => ({
       id: module.id,
       name: module.nom,
+      idparcour: module.parcour.id,
     }));
     ctx.send(modules);
   },
 
-  async getLessonsByModule(ctx) {
-    const user = ctx.state.user; // Obtenir l'utilisateur connecté
-    const { moduleId } = ctx.params;
-    const lessons = await strapi.db.query("api::lesson.lesson").findMany({
-      where: { module: moduleId, user: user.id }, // Filtrer par module et utilisateur
+  async getAllLessons(ctx) {
+    const data = await strapi.db.query("api::lesson.lesson").findMany({
+      populate: ["users_permissions_user", "module"],
+      where: {
+        users_permissions_user: {
+          id: ctx.state.user.id,
+        },
+      },
     });
+    const lessons = data.map((lesson) => ({
+      id: lesson.id,
+      name: lesson.nom,
+      idmodule: lesson.module.id,
+    }));
     ctx.send(lessons);
   },
 };
+
+// "use strict";
+
+// module.exports = {
+//   async getAllParcours(ctx) {
+//     const data = await strapi.db.query("api::parcour.parcour").findMany({
+//       populate: ["users_permissions_user"],
+//     });
+
+//     const parcours = data.map((parcour) => ({
+//       id: parcour.id,
+//       name: parcour.nom,
+//       userId: parcour.users_permissions_user.id,
+//     }));
+//     ctx.send(parcours);
+//   },
+
+//   async getAllModules(ctx) {
+//     const data = await strapi.db.query("api::module.module").findMany({
+//       populate: ["parcour", "users_permissions_user"],
+//     });
+
+//     const modules = data.map((module) => ({
+//       id: module.id,
+//       name: module.nom,
+//       parcourId: module.parcour.id,
+//       userId: module.users_permissions_user.id,
+//     }));
+//     ctx.send(modules);
+//   },
+
+//   async getAllLessons(ctx) {
+//     const data = await strapi.db.query("api::lesson.lesson").findMany({
+//       populate: ["module", "users_permissions_user"],
+//     });
+
+//     const lessons = data.map((lesson) => ({
+//       id: lesson.id,
+//       name: lesson.nom,
+//       moduleId: lesson.module.id,
+//       userId: lesson.users_permissions_user.id,
+//     }));
+//     ctx.send(lessons);
+//   },
+// };
