@@ -758,6 +758,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToMany',
       'api::resource.resource'
     >;
+    phoneNumber: Attribute.BigInteger;
+    postalCode: Attribute.BigInteger;
+    wilaya: Attribute.String;
+    dateOfBirth: Attribute.Date;
+    address: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

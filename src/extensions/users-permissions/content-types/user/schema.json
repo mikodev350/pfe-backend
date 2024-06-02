@@ -106,6 +106,21 @@
       "relation": "oneToMany",
       "target": "api::resource.resource",
       "mappedBy": "users_permissions_user"
+    },
+    "phoneNumber": {
+      "type": "biginteger"
+    },
+    "postalCode": {
+      "type": "biginteger"
+    },
+    "wilaya": {
+      "type": "string"
+    },
+    "dateOfBirth": {
+      "type": "date"
+    },
+    "address": {
+      "type": "string"
     }
   }
 }

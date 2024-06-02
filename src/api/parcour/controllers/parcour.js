@@ -92,6 +92,7 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
       ctx.throw(500, "An error occurred while creating the pathway");
     }
   },
+
   async find(ctx) {
     try {
       const { _page = 1, _limit = 5, _q = "" } = ctx.query;
@@ -102,11 +103,15 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
       // Rechercher les parcours avec pagination et filtre de recherche
       const [parcours, total] = await Promise.all([
         strapi.query("api::parcour.parcour").findMany({
+          populate: ["users_permissions_user"],
           where: {
             $or: [
               { nom: { $contains: _q } },
               { etablissement: { $contains: _q } },
             ],
+            users_permissions_user: {
+              id: ctx.state.user.id,
+            },
           },
           offset: start,
           limit,

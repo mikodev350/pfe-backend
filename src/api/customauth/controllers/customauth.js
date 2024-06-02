@@ -25,11 +25,22 @@ module.exports = {
       return ctx.badRequest("Please provide the new role");
     }
 
+    let roleId;
+    if (role.toLowerCase() === "student") {
+      roleId = 4;
+    } else if (role.toLowerCase() === "teacher") {
+      roleId = 3;
+    } else {
+      return ctx.badRequest(
+        "Invalid role provided. Must be 'student' or 'teacher'."
+      );
+    }
+
     try {
       // Check if the role exists
       const existingRole = await strapi
         .query("plugin::users-permissions.role")
-        .findOne({ where: { id: role } });
+        .findOne({ where: { id: roleId } });
       if (!existingRole) {
         return ctx.badRequest("Role does not exist");
       }
@@ -44,13 +55,13 @@ module.exports = {
 
       const updatedUser = await strapi
         .query("plugin::users-permissions.user")
-        .update({ where: { id: userId }, data: { role } });
+        .update({ where: { id: userId }, data: { role: roleId } });
 
       // Remove sensitive fields
       delete updatedUser.password;
       delete updatedUser.resetPasswordToken;
 
-      return ctx.send(updatedUser);
+      return ctx.send({ updatedUser, role: existingRole.name });
     } catch (err) {
       return ctx.internalServerError("Something went wrong");
     }
