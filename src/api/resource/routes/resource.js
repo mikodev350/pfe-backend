@@ -35,5 +35,13 @@ module.exports = createCoreRouter("api::resource.resource", {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/resources/:id",
+      handler: "resource.findOne",
+      config: {
+        policies: [],
+      },
+    },
   ],
 });

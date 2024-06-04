@@ -7,6 +7,30 @@
 const { createCoreController } = require("@strapi/strapi").factories;
 
 module.exports = createCoreController("api::module.module", ({ strapi }) => ({
+  async create(ctx) {
+    try {
+      const { nom, parcour } = ctx.request.body;
+
+      if (!nom || !parcour) {
+        return ctx.badRequest("Module name and parcours are required");
+      }
+
+      const newModule = await strapi.entityService.create(
+        "api::module.module",
+        {
+          data: {
+            nom,
+            parcour,
+          },
+        }
+      );
+
+      ctx.send({ message: "Module created successfully", data: newModule });
+    } catch (error) {
+      console.error("Error creating module:", error);
+      ctx.throw(500, "An error occurred while creating the module");
+    }
+  },
   async update(ctx) {
     try {
       const { id } = ctx.params;

@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "profils",
+  "info": {
+    "singularName": "profil",
+    "pluralName": "profils",
+    "displayName": "Profil",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "photoProfil": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "niveauEtudes": {
+      "type": "enumeration",
+      "enum": [
+        "Moyen",
+        "Lycée",
+        "Universitaire",
+        "Formation"
+      ]
+    },
+    "niveauFormation": {
+      "type": "string"
+    },
+    "programmeEtudes": {
+      "type": "string"
+    },
+    "institution": {
+      "type": "string"
+    },
+    "experienceStage": {
+      "type": "text"
+    },
+    "projets": {
+      "type": "text"
+    },
+    "bio": {
+      "type": "text"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "profil"
+    },
+    "anneeEtudes": {
+      "type": "string"
+    },
+    "competences": {
+      "type": "json"
+    }
+  }
+}

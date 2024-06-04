@@ -21,5 +21,13 @@ module.exports = createCoreRouter("api::module.module", {
         auth: false, // Changez à true si vous souhaitez exiger une authentification
       },
     },
+    {
+      method: "POST",
+      path: "/modules",
+      handler: "module.create",
+      config: {
+        policies: [],
+      },
+    },
   ],
 });

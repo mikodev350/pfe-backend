@@ -117,6 +117,32 @@ module.exports = createCoreController(
         totalPages,
       });
     },
+    async findOne(ctx) {
+      try {
+        const { id } = ctx.params;
+        const resource = await strapi.entityService.findOne(
+          "api::resource.resource",
+          id,
+          {
+            populate: [
+              "parcours",
+              "modules",
+              "lessons",
+              "image",
+              "audio",
+              "pdf",
+              "video",
+            ],
+          }
+        );
+        console.log("====================================");
+        console.log(resource);
+        console.log("====================================");
+        ctx.send(resource);
+      } catch (error) {
+        ctx.throw(500, "Error fetching resource");
+      }
+    },
     // async find(ctx) {
     //   const resources = await strapi.entityService.findMany(
     //     "api::resource.resource",

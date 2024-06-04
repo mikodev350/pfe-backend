@@ -27,5 +27,21 @@ module.exports = createCoreRouter("api::parcour.parcour", {
         auth: false, // Changez à true si vous souhaitez exiger une authentification
       },
     },
+    {
+      method: "PUT",
+      path: "/parcours/:id",
+      handler: "parcour.update",
+      config: {
+        policies: [],
+      },
+    },
+    {
+      method: "GET",
+      path: "/parcours/:id",
+      handler: "parcour.findOne",
+      config: {
+        policies: [],
+      },
+    },
   ],
 });

@@ -763,6 +763,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
     wilaya: Attribute.String;
     dateOfBirth: Attribute.Date;
     address: Attribute.String;
+    profil: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::profil.profil'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1099,6 +1104,53 @@ export interface ApiParcourParcour extends Schema.CollectionType {
   };
 }
 
+export interface ApiProfilProfil extends Schema.CollectionType {
+  collectionName: 'profils';
+  info: {
+    singularName: 'profil';
+    pluralName: 'profils';
+    displayName: 'Profil';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    photoProfil: Attribute.Media;
+    niveauEtudes: Attribute.Enumeration<
+      ['Moyen', 'Lyc\u00E9e', 'Universitaire', 'Formation']
+    >;
+    niveauFormation: Attribute.String;
+    programmeEtudes: Attribute.String;
+    institution: Attribute.String;
+    experienceStage: Attribute.Text;
+    projets: Attribute.Text;
+    bio: Attribute.Text;
+    users_permissions_user: Attribute.Relation<
+      'api::profil.profil',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    anneeEtudes: Attribute.String;
+    competences: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::profil.profil',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::profil.profil',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiResourceResource extends Schema.CollectionType {
   collectionName: 'resources';
   info: {
@@ -1183,6 +1235,7 @@ declare module '@strapi/types' {
       'api::message.message': ApiMessageMessage;
       'api::module.module': ApiModuleModule;
       'api::parcour.parcour': ApiParcourParcour;
+      'api::profil.profil': ApiProfilProfil;
       'api::resource.resource': ApiResourceResource;
     }
   }

@@ -144,4 +144,57 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
       ctx.throw(500, "An error occurred while retrieving the pathways");
     }
   },
+  async update(ctx) {
+    try {
+      const { id } = ctx.params;
+      const { pathwayData } = ctx.request.body;
+      const updatedPathway = await strapi.entityService.update(
+        "api::parcour.parcour",
+        id,
+        {
+          data: {
+            nom: pathwayData.nom,
+            type: pathwayData.type,
+            etablissement: pathwayData.etablissement,
+            autoApprentissage: pathwayData.autoApprentissage,
+          },
+        }
+      );
+      ctx.send({
+        message: "Pathway updated successfully",
+        data: updatedPathway,
+      });
+    } catch (error) {
+      console.error("Error updating pathway:", error);
+      ctx.throw(500, "An error occurred while updating the pathway");
+    }
+  },
+
+  async findOne(ctx) {
+    try {
+      const { id } = ctx.params;
+      const pathway = await strapi.entityService.findOne(
+        "api::parcour.parcour",
+        id,
+        {
+          populate: {
+            modules: {
+              populate: ["lessons"],
+            },
+          },
+        }
+      );
+
+      if (!pathway) {
+        return ctx.throw(404, "Pathway not found");
+      }
+
+      ctx.send({
+        data: pathway,
+      });
+    } catch (error) {
+      console.error("Error fetching pathway:", error);
+      ctx.throw(500, "An error occurred while fetching the pathway");
+    }
+  },
 }));
