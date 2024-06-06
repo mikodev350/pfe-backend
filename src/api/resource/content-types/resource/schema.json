@@ -44,7 +44,7 @@
     "note": {
       "type": "text"
     },
-    "image": {
+    "images": {
       "type": "media",
       "multiple": true,
       "required": false,
@@ -84,6 +84,9 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "resources"
+    },
+    "referenceLivre": {
+      "type": "string"
     }
   }
 }

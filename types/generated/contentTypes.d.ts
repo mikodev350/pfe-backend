@@ -768,6 +768,16 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::profil.profil'
     >;
+    education: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::education.education'
+    >;
+    experience: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::experience.experience'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -865,6 +875,90 @@ export interface ApiConversationConversation extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::conversation.conversation',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiEducationEducation extends Schema.CollectionType {
+  collectionName: 'educations';
+  info: {
+    singularName: 'education';
+    pluralName: 'educations';
+    displayName: 'Education';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    ecole: Attribute.String & Attribute.Required;
+    diplome: Attribute.String & Attribute.Required;
+    domaineEtude: Attribute.String & Attribute.Required;
+    dateDebut: Attribute.Date;
+    dateFin: Attribute.Date;
+    ecoleActuelle: Attribute.Boolean & Attribute.DefaultTo<false>;
+    descriptionProgramme: Attribute.Text & Attribute.Required;
+    users_permissions_user: Attribute.Relation<
+      'api::education.education',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::education.education',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::education.education',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiExperienceExperience extends Schema.CollectionType {
+  collectionName: 'experiences';
+  info: {
+    singularName: 'experience';
+    pluralName: 'experiences';
+    displayName: 'Experience';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    titrePoste: Attribute.String & Attribute.Required;
+    entreprise: Attribute.String & Attribute.Required;
+    localisation: Attribute.String & Attribute.Required;
+    dateDebut: Attribute.Date & Attribute.Required;
+    dateFin: Attribute.Date;
+    posteActuel: Attribute.Boolean & Attribute.DefaultTo<false>;
+    descriptionPoste: Attribute.Text & Attribute.Required;
+    users_permissions_user: Attribute.Relation<
+      'api::experience.experience',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::experience.experience',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::experience.experience',
       'oneToOne',
       'admin::user'
     > &
@@ -1183,7 +1277,7 @@ export interface ApiResourceResource extends Schema.CollectionType {
       'api::lesson.lesson'
     >;
     note: Attribute.Text;
-    image: Attribute.Media;
+    images: Attribute.Media;
     audio: Attribute.Media;
     pdf: Attribute.Media;
     video: Attribute.Media;
@@ -1193,6 +1287,7 @@ export interface ApiResourceResource extends Schema.CollectionType {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    referenceLivre: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1230,6 +1325,8 @@ declare module '@strapi/types' {
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
       'api::conversation.conversation': ApiConversationConversation;
+      'api::education.education': ApiEducationEducation;
+      'api::experience.experience': ApiExperienceExperience;
       'api::friend-request.friend-request': ApiFriendRequestFriendRequest;
       'api::lesson.lesson': ApiLessonLesson;
       'api::message.message': ApiMessageMessage;

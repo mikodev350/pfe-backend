@@ -127,6 +127,18 @@
       "relation": "oneToOne",
       "target": "api::profil.profil",
       "mappedBy": "users_permissions_user"
+    },
+    "education": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::education.education",
+      "mappedBy": "users_permissions_user"
+    },
+    "experience": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::experience.experience",
+      "mappedBy": "users_permissions_user"
     }
   }
 }

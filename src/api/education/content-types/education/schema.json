@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "educations",
+  "info": {
+    "singularName": "education",
+    "pluralName": "educations",
+    "displayName": "Education",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "ecole": {
+      "type": "string",
+      "required": true
+    },
+    "diplome": {
+      "type": "string",
+      "required": true
+    },
+    "domaineEtude": {
+      "type": "string",
+      "required": true
+    },
+    "dateDebut": {
+      "type": "date"
+    },
+    "dateFin": {
+      "type": "date"
+    },
+    "ecoleActuelle": {
+      "type": "boolean",
+      "default": false
+    },
+    "descriptionProgramme": {
+      "type": "text",
+      "required": true
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "education"
+    }
+  }
+}

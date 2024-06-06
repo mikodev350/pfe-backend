@@ -1,0 +1,49 @@
+{
+  "kind": "collectionType",
+  "collectionName": "experiences",
+  "info": {
+    "singularName": "experience",
+    "pluralName": "experiences",
+    "displayName": "Experience",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titrePoste": {
+      "type": "string",
+      "required": true
+    },
+    "entreprise": {
+      "type": "string",
+      "required": true
+    },
+    "localisation": {
+      "type": "string",
+      "required": true
+    },
+    "dateDebut": {
+      "type": "date",
+      "required": true
+    },
+    "dateFin": {
+      "type": "date"
+    },
+    "posteActuel": {
+      "type": "boolean",
+      "default": false
+    },
+    "descriptionPoste": {
+      "type": "text",
+      "required": true
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "experience"
+    }
+  }
+}
