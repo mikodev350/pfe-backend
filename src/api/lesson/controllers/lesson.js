@@ -6,18 +6,24 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
   async find(ctx) {
     try {
       const { _page = 1, _limit = 5, _q = "", moduleId } = ctx.query;
+      const page = parseInt(_page, 10);
+      const limit = parseInt(_limit, 10);
+      const start = (page - 1) * limit;
 
-      const start = (_page - 1) * _limit;
+      const where = {
+        nom: { $contains: _q },
+        module: moduleId,
+        users_permissions_user: {
+          id: ctx.state.user.id,
+        },
+      };
 
       const [lessons, total] = await strapi.db
         .query("api::lesson.lesson")
         .findWithCount({
-          where: {
-            nom: { $contains: _q },
-            module: moduleId,
-          },
+          where,
           start,
-          limit: _limit,
+          limit,
           sort: { createdAt: "DESC" },
         });
 
@@ -25,18 +31,18 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
         data: lessons,
         meta: {
           pagination: {
-            page: _page,
-            pageSize: _limit,
-            pageCount: Math.ceil(total / _limit),
+            page,
+            pageSize: limit,
+            pageCount: Math.ceil(total / limit),
             total,
           },
         },
       });
     } catch (error) {
+      console.error("Error fetching lessons:", error);
       ctx.throw(500, "Error fetching lessons");
     }
   },
-
   async create(ctx) {
     try {
       const { name, module } = ctx.request.body;
@@ -58,6 +64,7 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
           data: {
             nom: name,
             module: module,
+            users_permissions_user: ctx.state.user.id,
             publishedAt: new Date(), // Publier automatiquement la leçon
           },
         }
@@ -83,6 +90,7 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
         {
           data: {
             nom: data.nom,
+            users_permissions_user: ctx.state.user.id,
             publishedAt: new Date(), // Automatically publish the updated lesson
           },
         }

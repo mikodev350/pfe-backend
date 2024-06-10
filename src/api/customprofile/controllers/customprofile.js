@@ -5,13 +5,10 @@ module.exports = {
   async findOne(ctx) {
     try {
       const user = ctx.state.user;
-
       const profil = await strapi.entityService.findMany("api::profil.profil", {
         filters: { users_permissions_user: user.id },
         populate: "*",
       });
-      console.log(profil);
-
       if (profil.length === 0) {
         return ctx.notFound("Profile not found");
       }
@@ -22,63 +19,78 @@ module.exports = {
       ctx.throw(500, "Error fetching profile");
     }
   },
+
+  async getProfileOfUser(ctx) {
+    try {
+      const user = ctx.state.user;
+
+      // Rechercher le profil associé à l'utilisateur connecté
+      const profile = await strapi.entityService.findOne(
+        "plugin::users-permissions.user",
+        user.id,
+        {
+          populate: {
+            profil: {
+              populate: ["photoProfil"], // Populate photoProfil field
+            },
+            educations: true,
+            experiences: true,
+          },
+        }
+      );
+
+      if (!profile) {
+        return ctx.notFound("Profile not found");
+      }
+
+      // Filtrer les données pour n'envoyer que les éléments nécessaires
+      const filteredProfile = {
+        username: profile.username,
+        email: profile.email,
+        profil: {
+          nomFormation: profile.profil.nomFormation,
+          niveauEtudes: profile.profil.niveauEtudes,
+          niveauSpecifique: profile.profil.niveauSpecifique,
+          specialite: profile.profil.specialite,
+
+          programmeEtudes: profile.profil.programmeEtudes,
+          institution: profile.profil.institution,
+          experienceStage: profile.profil.experienceStage,
+          projets: profile.profil.projets,
+          bio: profile.profil.bio,
+          anneeEtudes: profile.profil.anneeEtudes,
+          competences: profile.profil.competences,
+          matieresEnseignees: profile.profil.matieresEnseignees,
+          niveauEnseigne: profile.profil.niveauEnseigne,
+          specialiteEnseigne: profile.profil.specialiteEnseigne,
+          photoProfil: profile.profil.photoProfil
+            ? profile.profil.photoProfil.url
+            : null, // Add photoProfil field
+        },
+        educations: profile.educations.map((edu) => ({
+          ecole: edu.ecole,
+          diplome: edu.diplome,
+          dateDebut: edu.dateDebut,
+          dateFin: edu.dateFin,
+          ecoleActuelle: edu.ecoleActuelle,
+          descriptionProgramme: edu.descriptionProgramme,
+          domaineEtude: edu.domaineEtude,
+        })),
+        experiences: profile.experiences.map((exp) => ({
+          titrePoste: exp.titrePoste,
+          entreprise: exp.entreprise,
+          localisation: exp.localisation,
+          dateDebut: exp.dateDebut,
+          dateFin: exp.dateFin,
+          posteActuel: exp.posteActuel,
+          descriptionPoste: exp.descriptionPoste,
+        })),
+      };
+
+      ctx.send(filteredProfile);
+    } catch (error) {
+      strapi.log.error(error);
+      ctx.throw(500, "Error fetching profile");
+    }
+  },
 };
-
-// "use strict";
-
-// /**
-//  * profil controller
-//  */
-
-// const { createCoreController } = require("@strapi/strapi").factories;
-
-// module.exports = createCoreController("api::profil.profil", ({ strapi }) => ({
-//   // Méthode pour créer un profil
-//   async create(ctx) {
-//     const user = ctx.state.user;
-
-//     if (!user) {
-//       return ctx.unauthorized("You must be logged in to create a profile");
-//     }
-
-//     const { body } = ctx.request;
-
-//     // Associez l'utilisateur connecté au profil
-//     body.user = user.id;
-
-//     const entity = await strapi
-//       .service("api::profil.profil")
-//       .create({ data: body });
-//     return this.transformResponse(entity);
-//   },
-
-//   // Méthode pour récupérer un profil par l'ID de l'utilisateur
-//   async findOne(ctx) {
-//     const user = ctx.state.user;
-
-//     if (!user) {
-//       return ctx.unauthorized("You must be logged in to view a profile");
-//     }
-
-//     const entity = await strapi
-//       .service("api::profil.profil")
-//       .find({ user: user.id });
-//     return this.transformResponse(entity);
-//   },
-
-//   // Méthode pour mettre à jour un profil
-//   async update(ctx) {
-//     const user = ctx.state.user;
-
-//     if (!user) {
-//       return ctx.unauthorized("You must be logged in to update a profile");
-//     }
-
-//     const { body } = ctx.request;
-
-//     const entity = await strapi
-//       .service("api::profil.profil")
-//       .update({ user: user.id }, { data: body });
-//     return this.transformResponse(entity);
-//   },
-// }));

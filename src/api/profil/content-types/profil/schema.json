@@ -23,26 +23,21 @@
     "niveauEtudes": {
       "type": "enumeration",
       "enum": [
+        "rien",
+        "Primaire",
         "Moyen",
         "Lycée",
-        "Universitaire",
-        "Formation"
+        "Université"
       ]
     },
-    "niveauFormation": {
+    "nomFormation": {
       "type": "string"
     },
     "programmeEtudes": {
       "type": "string"
     },
-    "institution": {
+    "etablisement": {
       "type": "string"
-    },
-    "experienceStage": {
-      "type": "text"
-    },
-    "projets": {
-      "type": "text"
     },
     "bio": {
       "type": "text"
@@ -58,6 +53,29 @@
     },
     "competences": {
       "type": "json"
+    },
+    "typeEtudes": {
+      "type": "enumeration",
+      "enum": [
+        "académique",
+        "continue",
+        "teacher"
+      ]
+    },
+    "niveauSpecifique": {
+      "type": "string"
+    },
+    "specialite": {
+      "type": "string"
+    },
+    "matieresEnseignees": {
+      "type": "json"
+    },
+    "specialiteEnseigne": {
+      "type": "string"
+    },
+    "niveauEnseigne": {
+      "type": "string"
     }
   }
 }

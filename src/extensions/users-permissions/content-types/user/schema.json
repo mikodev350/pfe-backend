@@ -128,15 +128,15 @@
       "target": "api::profil.profil",
       "mappedBy": "users_permissions_user"
     },
-    "education": {
+    "educations": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::education.education",
       "mappedBy": "users_permissions_user"
     },
-    "experience": {
+    "experiences": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::experience.experience",
       "mappedBy": "users_permissions_user"
     }

@@ -38,6 +38,7 @@ module.exports = createCoreController(
           modules: module,
           lessons: lesson,
           publishedAt: new Date(), // Définir la date de publication actuelle
+          users_permissions_user: ctx.state.user.id,
         };
 
         const newResource = await strapi.entityService.create(
@@ -73,47 +74,57 @@ module.exports = createCoreController(
       ctx.send(resources);
     },
     async find(ctx) {
-      const { page = 1, pageSize = 10, section, search } = ctx.query;
+      try {
+        const { page = 1, pageSize = 10, section, search } = ctx.query;
 
-      const filters = {};
-      if (section) {
-        filters.section = section;
+        const filters = {
+          users_permissions_user: {
+            id: ctx.state.user.id,
+          },
+        };
+
+        if (section) {
+          filters.section = section;
+        }
+        if (search) {
+          filters.name = { $contains: search };
+        }
+
+        const start = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const [resources, total] = await Promise.all([
+          strapi.entityService.findMany("api::resource.resource", {
+            filters,
+            populate: [
+              "parcours",
+              "module",
+              "lesson",
+              "images",
+              "audio",
+              "pdf",
+              "video",
+            ],
+            start,
+            limit,
+          }),
+
+          strapi.entityService.count("api::resource.resource", {
+            filters,
+          }),
+        ]);
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        ctx.send({
+          data: resources,
+          total,
+          totalPages,
+        });
+      } catch (error) {
+        console.error("Error fetching resources:", error);
+        ctx.throw(500, "Error fetching resources");
       }
-      if (search) {
-        filters.name = { $contains: search };
-      }
-
-      const start = (page - 1) * pageSize;
-      const limit = pageSize;
-
-      const [resources, total] = await Promise.all([
-        strapi.entityService.findMany("api::resource.resource", {
-          filters,
-          populate: [
-            "parcours",
-            "module",
-            "lesson",
-            "images",
-            "audio",
-            "pdf",
-            "video",
-          ],
-          start,
-          limit,
-        }),
-
-        strapi.entityService.count("api::resource.resource", {
-          filters,
-        }),
-      ]);
-
-      const totalPages = Math.ceil(total / pageSize);
-
-      ctx.send({
-        data: resources,
-        total,
-        totalPages,
-      });
     },
     /****************************************************/
 

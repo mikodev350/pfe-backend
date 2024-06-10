@@ -21,6 +21,7 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
           data: {
             nom,
             parcour,
+            users_permissions_user: ctx.state.user.id,
           },
         }
       );
@@ -63,7 +64,16 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
       const limit = parseInt(_limit, 10);
       const start = (page - 1) * limit;
 
-      const where = parcour ? { parcour } : {};
+      const where = {
+        users_permissions_user: {
+          id: ctx.state.user.id,
+        },
+      };
+
+      if (parcour) {
+        where.parcour = parcour;
+      }
+
       if (_q) {
         where.nom = { $contains: _q };
       }

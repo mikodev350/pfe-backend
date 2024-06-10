@@ -768,14 +768,14 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::profil.profil'
     >;
-    education: Attribute.Relation<
+    educations: Attribute.Relation<
       'plugin::users-permissions.user',
-      'oneToOne',
+      'oneToMany',
       'api::education.education'
     >;
-    experience: Attribute.Relation<
+    experiences: Attribute.Relation<
       'plugin::users-permissions.user',
-      'oneToOne',
+      'oneToMany',
       'api::experience.experience'
     >;
     createdAt: Attribute.DateTime;
@@ -903,7 +903,7 @@ export interface ApiEducationEducation extends Schema.CollectionType {
     descriptionProgramme: Attribute.Text & Attribute.Required;
     users_permissions_user: Attribute.Relation<
       'api::education.education',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
@@ -945,7 +945,7 @@ export interface ApiExperienceExperience extends Schema.CollectionType {
     descriptionPoste: Attribute.Text & Attribute.Required;
     users_permissions_user: Attribute.Relation<
       'api::experience.experience',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
@@ -1212,13 +1212,11 @@ export interface ApiProfilProfil extends Schema.CollectionType {
   attributes: {
     photoProfil: Attribute.Media;
     niveauEtudes: Attribute.Enumeration<
-      ['Moyen', 'Lyc\u00E9e', 'Universitaire', 'Formation']
+      ['rien', 'Primaire', 'Moyen', 'Lyc\u00E9e', 'Universit\u00E9']
     >;
-    niveauFormation: Attribute.String;
+    nomFormation: Attribute.String;
     programmeEtudes: Attribute.String;
-    institution: Attribute.String;
-    experienceStage: Attribute.Text;
-    projets: Attribute.Text;
+    etablisement: Attribute.String;
     bio: Attribute.Text;
     users_permissions_user: Attribute.Relation<
       'api::profil.profil',
@@ -1227,6 +1225,14 @@ export interface ApiProfilProfil extends Schema.CollectionType {
     >;
     anneeEtudes: Attribute.String;
     competences: Attribute.JSON;
+    typeEtudes: Attribute.Enumeration<
+      ['acad\u00E9mique', 'continue', 'teacher']
+    >;
+    niveauSpecifique: Attribute.String;
+    specialite: Attribute.String;
+    matieresEnseignees: Attribute.JSON;
+    specialiteEnseigne: Attribute.String;
+    niveauEnseigne: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

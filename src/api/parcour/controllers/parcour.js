@@ -23,6 +23,7 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
             type: data.type,
             etablissement: data.etablissement,
             publishedAt: new Date(), // Publier le parcours
+            users_permissions_user: ctx.state.user.id,
           },
         }
       );
@@ -38,6 +39,7 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
               nom: moduleData.nom,
               parcour: createdPathway.id,
               publishedAt: new Date(), // Publier le module
+              users_permissions_user: ctx.state.user.id,
             },
           }
         );
@@ -56,6 +58,7 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
                     nom: lessonName,
                     module: createdModule.id,
                     publishedAt: new Date(), // Publier la leçon
+                    users_permissions_user: ctx.state.user.id,
                   },
                 }
               );
@@ -75,6 +78,7 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
                   format: resourceData.format,
                   module: createdModule.id,
                   publishedAt: new Date(), // Publier la ressource
+                  users_permissions_user: ctx.state.user.id,
                 },
               }
             );

@@ -3,39 +3,51 @@
 const { createCoreController } = require("@strapi/strapi").factories;
 
 module.exports = createCoreController("api::profil.profil", ({ strapi }) => ({
-  // Méthode pour créer un profil
+  parseArrayField: (field) => {
+    try {
+      return Array.isArray(field) ? field : JSON.parse(field);
+    } catch (e) {
+      return [];
+    }
+  },
+
   async create(ctx) {
     try {
       const {
+        typeEtudes,
         niveauEtudes,
-        programmeEtudes,
-        anneeEtudes,
-        institution,
+        niveauSpecifique,
+        specialite,
+        etablisement,
         competences,
-        experienceStage,
-        projets,
         bio,
-        niveauFormation,
+        matieresEnseignees,
+        niveauEnseigne,
+        specialiteEnseigne,
         photoProfil,
+        nomFormation,
       } = ctx.request.body;
 
       const user = ctx.state.user;
 
       const createData = {
-        niveauEtudes,
-        programmeEtudes,
-        anneeEtudes,
-        institution,
-        competences: Array.isArray(competences)
-          ? competences
-          : JSON.parse(competences),
-        experienceStage,
-        projets,
+        typeEtudes,
+        niveauEtudes: nomFormation ? "rien" : niveauEtudes,
+        niveauSpecifique,
+        specialite,
+        etablisement,
+        competences: this.parseArrayField(competences),
         bio,
-        niveauFormation,
+        matieresEnseignees: this.parseArrayField(matieresEnseignees),
+        niveauEnseigne,
+        specialiteEnseigne,
         photoProfil,
+        nomFormation,
         users_permissions_user: user.id,
+        publishedAt: new Date(), // Ensure the profile is published immediately
       };
+
+      console.log("createData:", createData); // Log to verify the data
 
       const newProfil = await strapi.entityService.create(
         "api::profil.profil",
@@ -49,42 +61,47 @@ module.exports = createCoreController("api::profil.profil", ({ strapi }) => ({
         data: newProfil,
       });
     } catch (error) {
+      console.log("Validation error details:", error); // Log validation errors
       strapi.log.error(error);
       ctx.throw(500, "Error creating profile");
     }
   },
 
-  // Méthode pour mettre à jour le profil de l'utilisateur connecté
   async update(ctx) {
     try {
       const { id } = ctx.params;
       const {
+        typeEtudes,
         niveauEtudes,
-        programmeEtudes,
-        anneeEtudes,
-        institution,
+        niveauSpecifique,
+        specialite,
+        etablisement,
         competences,
-        experienceStage,
-        projets,
         bio,
-        niveauFormation,
+        matieresEnseignees,
+        niveauEnseigne,
+        specialiteEnseigne,
         photoProfil,
+        nomFormation,
       } = ctx.request.body;
 
       const updateData = {
-        niveauEtudes,
-        programmeEtudes,
-        anneeEtudes,
-        institution,
-        competences: Array.isArray(competences)
-          ? competences
-          : JSON.parse(competences),
-        experienceStage,
-        projets,
+        typeEtudes,
+        niveauEtudes: nomFormation ? "rien" : niveauEtudes,
+        niveauSpecifique,
+        specialite,
+        etablisement,
+        competences: this.parseArrayField(competences),
         bio,
-        niveauFormation,
+        matieresEnseignees: this.parseArrayField(matieresEnseignees),
+        niveauEnseigne,
+        specialiteEnseigne,
         photoProfil,
+        nomFormation,
+        publishedAt: new Date(), // Ensure the profile is published immediately
       };
+
+      console.log("updateData:", updateData); // Log to verify the data
 
       const updatedProfile = await strapi.entityService.update(
         "api::profil.profil",
@@ -99,6 +116,7 @@ module.exports = createCoreController("api::profil.profil", ({ strapi }) => ({
         data: updatedProfile,
       });
     } catch (error) {
+      console.log("Validation error details:", error); // Log validation errors
       strapi.log.error(error);
       ctx.throw(500, "Error updating profile");
     }

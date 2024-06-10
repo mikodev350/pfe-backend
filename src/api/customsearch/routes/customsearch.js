@@ -2,16 +2,16 @@ module.exports = {
   routes: [
     {
       method: "GET",
-      path: "/custom-profile/me",
-      handler: "customprofile.findOne",
+      path: "/custom-search/advanced",
+      handler: "customsearch.advancedSearch",
       config: {
         policies: [],
       },
     },
     {
       method: "GET",
-      path: "/get-my-profile/me",
-      handler: "customprofile.getProfileOfUser",
+      path: "/custom-search/users",
+      handler: "customsearch.searchUsers",
       config: {
         policies: [],
       },
