@@ -723,11 +723,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToOne',
       'plugin::users-permissions.role'
     >;
-    friend_requests: Attribute.Relation<
-      'plugin::users-permissions.user',
-      'oneToMany',
-      'api::friend-request.friend-request'
-    >;
     conversations: Attribute.Relation<
       'plugin::users-permissions.user',
       'manyToMany',
@@ -777,6 +772,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'plugin::users-permissions.user',
       'oneToMany',
       'api::experience.experience'
+    >;
+    invitation: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::invitation.invitation'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -966,40 +966,40 @@ export interface ApiExperienceExperience extends Schema.CollectionType {
   };
 }
 
-export interface ApiFriendRequestFriendRequest extends Schema.CollectionType {
-  collectionName: 'friend_requests';
+export interface ApiInvitationInvitation extends Schema.CollectionType {
+  collectionName: 'invitations';
   info: {
-    singularName: 'friend-request';
-    pluralName: 'friend-requests';
-    displayName: 'FriendRequest';
+    singularName: 'invitation';
+    pluralName: 'invitations';
+    displayName: 'Invitation';
   };
   options: {
     draftAndPublish: true;
   };
   attributes: {
     expediteur: Attribute.Relation<
-      'api::friend-request.friend-request',
-      'manyToOne',
+      'api::invitation.invitation',
+      'oneToOne',
       'plugin::users-permissions.user'
     >;
     destinataire: Attribute.Relation<
-      'api::friend-request.friend-request',
-      'manyToOne',
+      'api::invitation.invitation',
+      'oneToOne',
       'plugin::users-permissions.user'
     >;
-    status: Attribute.Enumeration<['attente', 'accept\u00E9', 'rejet\u00E9']> &
-      Attribute.DefaultTo<'attente'>;
+    status: Attribute.Enumeration<['attente', 'accept\u00E9e', 'refus\u00E9e']>;
+    token: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
-      'api::friend-request.friend-request',
+      'api::invitation.invitation',
       'oneToOne',
       'admin::user'
     > &
       Attribute.Private;
     updatedBy: Attribute.Relation<
-      'api::friend-request.friend-request',
+      'api::invitation.invitation',
       'oneToOne',
       'admin::user'
     > &
@@ -1333,7 +1333,7 @@ declare module '@strapi/types' {
       'api::conversation.conversation': ApiConversationConversation;
       'api::education.education': ApiEducationEducation;
       'api::experience.experience': ApiExperienceExperience;
-      'api::friend-request.friend-request': ApiFriendRequestFriendRequest;
+      'api::invitation.invitation': ApiInvitationInvitation;
       'api::lesson.lesson': ApiLessonLesson;
       'api::message.message': ApiMessageMessage;
       'api::module.module': ApiModuleModule;

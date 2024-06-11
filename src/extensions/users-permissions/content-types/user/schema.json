@@ -65,12 +65,6 @@
       "inversedBy": "users",
       "configurable": false
     },
-    "friend_requests": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::friend-request.friend-request",
-      "mappedBy": "destinataire"
-    },
     "conversations": {
       "type": "relation",
       "relation": "manyToMany",
@@ -139,6 +133,12 @@
       "relation": "oneToMany",
       "target": "api::experience.experience",
       "mappedBy": "users_permissions_user"
+    },
+    "invitation": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::invitation.invitation",
+      "mappedBy": "destinataire"
     }
   }
 }

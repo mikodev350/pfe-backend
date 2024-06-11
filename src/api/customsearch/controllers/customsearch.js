@@ -54,6 +54,7 @@ module.exports = {
       ctx.throw(500, "Error fetching resources");
     }
   },
+
   async searchUsers(ctx) {
     try {
       const {
@@ -103,7 +104,7 @@ module.exports = {
         "plugin::users-permissions.user",
         {
           filters,
-          populate: ["role", "profil"],
+          populate: ["role", "profil", "profil.photoProfil"],
         }
       );
 
@@ -117,8 +118,29 @@ module.exports = {
         );
       }
 
-      console.log("Retrieved users:", users);
-      ctx.send(users);
+      // Format the users data
+      const formattedUsers = users.map((user) => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role.name,
+        profil: {
+          nom: user.profil.nom,
+          typeEtudes: user.profil.typeEtudes,
+          nomFormation: user.profil.nomFormation,
+          niveauEtudes: user.profil.niveauEtudes,
+          niveauSpecifique: user.profil.niveauSpecifique,
+          matieresEnseignees: user.profil.matieresEnseignees,
+          niveauEnseigne: user.profil.niveauEnseigne,
+          specialiteEnseigne: user.profil.specialiteEnseigne,
+        },
+        profilePicture: user.profil.photoProfil
+          ? user.profil.photoProfil.url
+          : null,
+      }));
+
+      console.log("Retrieved users:", formattedUsers);
+      ctx.send(formattedUsers);
     } catch (error) {
       strapi.log.error(error);
       ctx.throw(500, "Error fetching users");
