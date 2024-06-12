@@ -9,7 +9,6 @@ module.exports = createCoreRouter("api::module.module", {
       handler: "module.update",
       config: {
         policies: [],
-        auth: false, // Changez à true si vous souhaitez exiger une authentification
       },
     },
     {
@@ -18,13 +17,20 @@ module.exports = createCoreRouter("api::module.module", {
       handler: "module.find",
       config: {
         policies: [],
-        auth: false, // Changez à true si vous souhaitez exiger une authentification
       },
     },
     {
       method: "POST",
       path: "/modules",
       handler: "module.create",
+      config: {
+        policies: [],
+      },
+    },
+    {
+      method: "DELETE",
+      path: "/modules/:id",
+      handler: "module.delete",
       config: {
         policies: [],
       },

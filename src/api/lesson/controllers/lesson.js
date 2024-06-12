@@ -39,10 +39,11 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
         },
       });
     } catch (error) {
-      console.error("Error fetching lessons:", error);
-      ctx.throw(500, "Error fetching lessons");
+      console.error("Erreur lors de la récupération des leçons :", error);
+      ctx.throw(500, "Erreur lors de la récupération des leçons");
     }
   },
+
   async create(ctx) {
     try {
       const { name, module } = ctx.request.body;
@@ -54,7 +55,7 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
       );
 
       if (!existingModule) {
-        return ctx.throw(404, "Module not found");
+        return ctx.throw(404, "Module non trouvé");
       }
 
       // Créez la leçon
@@ -71,11 +72,11 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
       );
 
       ctx.send({
-        message: "Lesson created successfully",
+        message: "Leçon créée avec succès",
         data: createdLesson,
       });
     } catch (error) {
-      ctx.throw(500, "Error creating lesson");
+      ctx.throw(500, "Erreur lors de la création de la leçon");
     }
   },
 
@@ -91,17 +92,42 @@ module.exports = createCoreController("api::lesson.lesson", ({ strapi }) => ({
           data: {
             nom: data.nom,
             users_permissions_user: ctx.state.user.id,
-            publishedAt: new Date(), // Automatically publish the updated lesson
+            publishedAt: new Date(), // Publier automatiquement la leçon mise à jour
           },
         }
       );
 
       ctx.send({
-        message: "Lesson updated successfully",
+        message: "Leçon mise à jour avec succès",
         data: updatedLesson,
       });
     } catch (error) {
-      ctx.throw(500, "Error updating lesson");
+      ctx.throw(500, "Erreur lors de la mise à jour de la leçon");
+    }
+  },
+
+  async delete(ctx) {
+    try {
+      const { id } = ctx.params;
+
+      // Vérifiez si la leçon existe
+      const existingLesson = await strapi.entityService.findOne(
+        "api::lesson.lesson",
+        id
+      );
+
+      if (!existingLesson) {
+        return ctx.throw(404, "Leçon non trouvée");
+      }
+
+      // Supprimez la leçon
+      await strapi.entityService.delete("api::lesson.lesson", id);
+
+      ctx.send({
+        message: "Leçon supprimée avec succès",
+      });
+    } catch (error) {
+      ctx.throw(500, "Erreur lors de la suppression de la leçon");
     }
   },
 }));

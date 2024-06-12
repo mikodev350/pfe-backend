@@ -88,12 +88,12 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
       }
 
       ctx.send({
-        message: "Pathway created successfully",
+        message: "Parcours créé avec succès",
         data: createdPathway,
       });
     } catch (error) {
-      console.error("Error creating pathway:", error);
-      ctx.throw(500, "An error occurred while creating the pathway");
+      console.error("Erreur lors de la création du parcours:", error);
+      ctx.throw(500, "Une erreur est survenue lors de la création du parcours");
     }
   },
 
@@ -144,10 +144,14 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
         },
       });
     } catch (error) {
-      console.error("Error retrieving pathways:", error);
-      ctx.throw(500, "An error occurred while retrieving the pathways");
+      console.error("Erreur lors de la récupération des parcours:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération des parcours"
+      );
     }
   },
+
   async update(ctx) {
     try {
       const { id } = ctx.params;
@@ -165,12 +169,15 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
         }
       );
       ctx.send({
-        message: "Pathway updated successfully",
+        message: "Parcours mis à jour avec succès",
         data: updatedPathway,
       });
     } catch (error) {
-      console.error("Error updating pathway:", error);
-      ctx.throw(500, "An error occurred while updating the pathway");
+      console.error("Erreur lors de la mise à jour du parcours:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la mise à jour du parcours"
+      );
     }
   },
 
@@ -190,15 +197,79 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
       );
 
       if (!pathway) {
-        return ctx.throw(404, "Pathway not found");
+        return ctx.throw(404, "Parcours non trouvé");
       }
 
       ctx.send({
         data: pathway,
       });
     } catch (error) {
-      console.error("Error fetching pathway:", error);
-      ctx.throw(500, "An error occurred while fetching the pathway");
+      console.error("Erreur lors de la récupération du parcours:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération du parcours"
+      );
+    }
+  },
+
+  async delete(ctx) {
+    try {
+      const { id } = ctx.params;
+
+      // Vérifiez si le parcours existe
+      const existingPathway = await strapi.entityService.findOne(
+        "api::parcour.parcour",
+        id
+      );
+
+      if (!existingPathway) {
+        return ctx.throw(404, "Parcours non trouvé");
+      }
+
+      // Trouver tous les modules liés au parcours
+      const relatedModules = await strapi.entityService.findMany(
+        "api::module.module",
+        {
+          filters: { parcour: id },
+        }
+      );
+
+      // Supprimer toutes les leçons et les modules liés
+      for (const module of relatedModules) {
+        // Trouver toutes les leçons liées au module
+        const relatedLessons = await strapi.entityService.findMany(
+          "api::lesson.lesson",
+          {
+            filters: { module: module.id },
+          }
+        );
+
+        // Supprimer toutes les leçons liées
+        await Promise.all(
+          relatedLessons.map((lesson) =>
+            strapi.entityService.delete("api::lesson.lesson", lesson.id)
+          )
+        );
+
+        // Supprimer le module
+        await strapi.entityService.delete("api::module.module", module.id);
+      }
+
+      // Supprimer le parcours
+      await strapi.entityService.delete("api::parcour.parcour", id);
+
+      ctx.send({
+        message: "Parcours, modules et leçons liés supprimés avec succès",
+      });
+    } catch (error) {
+      console.error(
+        "Erreur lors de la suppression du parcours, des modules et des leçons liés:",
+        error
+      );
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la suppression du parcours, des modules et des leçons liés"
+      );
     }
   },
 }));

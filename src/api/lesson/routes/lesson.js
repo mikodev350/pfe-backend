@@ -26,5 +26,13 @@ module.exports = {
         policies: [],
       },
     },
+    {
+      method: "DELETE",
+      path: "/lessons/:id",
+      handler: "lesson.delete",
+      config: {
+        policies: [],
+      },
+    },
   ],
 };

@@ -12,7 +12,7 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
       const { nom, parcour } = ctx.request.body;
 
       if (!nom || !parcour) {
-        return ctx.badRequest("Module name and parcours are required");
+        return ctx.badRequest("Le nom du module et le parcours sont requis");
       }
 
       const newModule = await strapi.entityService.create(
@@ -26,18 +26,19 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
         }
       );
 
-      ctx.send({ message: "Module created successfully", data: newModule });
+      ctx.send({ message: "Module créé avec succès", data: newModule });
     } catch (error) {
-      console.error("Error creating module:", error);
-      ctx.throw(500, "An error occurred while creating the module");
+      console.error("Erreur lors de la création du module:", error);
+      ctx.throw(500, "Une erreur est survenue lors de la création du module");
     }
   },
+
   async update(ctx) {
     try {
       const { id } = ctx.params;
       const { data } = ctx.request.body;
 
-      console.log("Updating module id:", id, "with data:", data);
+      console.log("Mise à jour du module id:", id, "avec les données:", data);
 
       const updatedModule = await strapi.entityService.update(
         "api::module.module",
@@ -48,12 +49,15 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
       );
 
       ctx.send({
-        message: "Module updated successfully",
+        message: "Module mis à jour avec succès",
         data: updatedModule,
       });
     } catch (error) {
-      console.error("Error updating module:", error);
-      ctx.throw(500, "An error occurred while updating the module");
+      console.error("Erreur lors de la mise à jour du module:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la mise à jour du module"
+      );
     }
   },
 
@@ -101,8 +105,58 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
         },
       });
     } catch (error) {
-      console.error("Error retrieving modules:", error);
-      ctx.throw(500, "An error occurred while retrieving the modules");
+      console.error("Erreur lors de la récupération des modules:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération des modules"
+      );
+    }
+  },
+
+  async delete(ctx) {
+    try {
+      const { id } = ctx.params;
+
+      // Vérifiez si le module existe
+      const existingModule = await strapi.entityService.findOne(
+        "api::module.module",
+        id
+      );
+
+      if (!existingModule) {
+        return ctx.throw(404, "Module non trouvé");
+      }
+
+      // Trouver toutes les leçons liées au module
+      const relatedLessons = await strapi.entityService.findMany(
+        "api::lesson.lesson",
+        {
+          filters: { module: id },
+        }
+      );
+
+      // Supprimer toutes les leçons liées
+      await Promise.all(
+        relatedLessons.map((lesson) =>
+          strapi.entityService.delete("api::lesson.lesson", lesson.id)
+        )
+      );
+
+      // Supprimer le module
+      await strapi.entityService.delete("api::module.module", id);
+
+      ctx.send({
+        message: "Module et leçons liées supprimés avec succès",
+      });
+    } catch (error) {
+      console.error(
+        "Erreur lors de la suppression du module et des leçons liées:",
+        error
+      );
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la suppression du module et des leçons liées"
+      );
     }
   },
 }));
