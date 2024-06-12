@@ -15,14 +15,12 @@
     "destinataire": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "relation"
+      "target": "plugin::users-permissions.user"
     },
     "expediteur": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "relation"
+      "target": "plugin::users-permissions.user"
     },
     "status": {
       "type": "enumeration",

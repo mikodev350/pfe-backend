@@ -18,7 +18,7 @@ module.exports = {
     },
     {
       method: "DELETE",
-      path: "/relation",
+      path: "/relation/:id",
       handler: "relation.declineRelation",
     },
   ],

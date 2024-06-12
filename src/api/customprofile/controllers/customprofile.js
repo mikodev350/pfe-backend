@@ -1,6 +1,7 @@
 "use strict";
 
 module.exports = {
+  findRelationStatus() {},
   // Utility function to fetch a user profile with populated fields
   async fetchUserProfile(userId) {
     try {
@@ -17,7 +18,32 @@ module.exports = {
           },
         }
       );
-
+      const relation = await strapi.db.query("api::relation.relation").findOne({
+        where: {
+          $or: [
+            {
+              destinataire: {
+                id: profile.id,
+              },
+            },
+            {
+              expediteur: {
+                id: profile.id,
+              },
+            },
+          ],
+        },
+        select: ["id", "status"],
+        populate: {
+          destinataire: {
+            select: ["id"],
+          },
+          expediteur: {
+            select: ["id"],
+          },
+        },
+      });
+      console.log(relation);
       if (!profile) {
         throw new Error("Profile not found");
       }
@@ -25,6 +51,9 @@ module.exports = {
       const filteredProfile = {
         username: profile.username,
         email: profile.email,
+        relationIsExist: !!relation,
+        isFriends: relation?.status === "acceptée",
+        isRequestSender: relation?.destinataire?.id !== Number(userId),
         profil: profile.profil
           ? {
               nomFormation: profile.profil.nomFormation || null,
@@ -32,9 +61,9 @@ module.exports = {
               niveauSpecifique: profile.profil.niveauSpecifique || null,
               specialite: profile.profil.specialite || null,
               programmeEtudes: profile.profil.programmeEtudes || null,
-              institution: profile.profil.institution || null,
-              experienceStage: profile.profil.experienceStage || null,
-              projets: profile.profil.projets || null,
+              institution: profile.profil?.institution || null,
+              experienceStage: profile.profil?.experienceStage || null,
+              projets: profile.profil?.projets || null,
               bio: profile.profil.bio || null,
               anneeEtudes: profile.profil.anneeEtudes || null,
               competences: profile.profil.competences || null,
