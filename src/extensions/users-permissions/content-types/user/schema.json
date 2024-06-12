@@ -134,11 +134,19 @@
       "target": "api::experience.experience",
       "mappedBy": "users_permissions_user"
     },
-    "invitation": {
+    "relation": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::invitation.invitation",
-      "mappedBy": "destinataire"
+      "target": "api::relation.relation",
+      "mappedBy": "expediteur"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "TEACHER",
+        "STUDENT"
+      ],
+      "required": true
     }
   }
 }

@@ -590,6 +590,53 @@ export interface PluginContentReleasesReleaseAction
   };
 }
 
+export interface PluginI18NLocale extends Schema.CollectionType {
+  collectionName: 'i18n_locale';
+  info: {
+    singularName: 'locale';
+    pluralName: 'locales';
+    collectionName: 'locales';
+    displayName: 'Locale';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    name: Attribute.String &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+          max: 50;
+        },
+        number
+      >;
+    code: Attribute.String & Attribute.Unique;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::i18n.locale',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::i18n.locale',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUsersPermissionsPermission
   extends Schema.CollectionType {
   collectionName: 'up_permissions';
@@ -773,11 +820,12 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToMany',
       'api::experience.experience'
     >;
-    invitation: Attribute.Relation<
+    relation: Attribute.Relation<
       'plugin::users-permissions.user',
       'oneToOne',
-      'api::invitation.invitation'
+      'api::relation.relation'
     >;
+    type: Attribute.Enumeration<['TEACHER', 'STUDENT']> & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -788,53 +836,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'plugin::users-permissions.user',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface PluginI18NLocale extends Schema.CollectionType {
-  collectionName: 'i18n_locale';
-  info: {
-    singularName: 'locale';
-    pluralName: 'locales';
-    collectionName: 'locales';
-    displayName: 'Locale';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    name: Attribute.String &
-      Attribute.SetMinMax<
-        {
-          min: 1;
-          max: 50;
-        },
-        number
-      >;
-    code: Attribute.String & Attribute.Unique;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'plugin::i18n.locale',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'plugin::i18n.locale',
       'oneToOne',
       'admin::user'
     > &
@@ -959,47 +960,6 @@ export interface ApiExperienceExperience extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::experience.experience',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiInvitationInvitation extends Schema.CollectionType {
-  collectionName: 'invitations';
-  info: {
-    singularName: 'invitation';
-    pluralName: 'invitations';
-    displayName: 'Invitation';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    expediteur: Attribute.Relation<
-      'api::invitation.invitation',
-      'oneToOne',
-      'plugin::users-permissions.user'
-    >;
-    destinataire: Attribute.Relation<
-      'api::invitation.invitation',
-      'oneToOne',
-      'plugin::users-permissions.user'
-    >;
-    status: Attribute.Enumeration<['attente', 'accept\u00E9e', 'refus\u00E9e']>;
-    token: Attribute.String;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::invitation.invitation',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::invitation.invitation',
       'oneToOne',
       'admin::user'
     > &
@@ -1148,6 +1108,46 @@ export interface ApiModuleModule extends Schema.CollectionType {
   };
 }
 
+export interface ApiNotificationNotification extends Schema.CollectionType {
+  collectionName: 'notifications';
+  info: {
+    singularName: 'notification';
+    pluralName: 'notifications';
+    displayName: 'notification';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    expediteur: Attribute.Relation<
+      'api::notification.notification',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    destinataire: Attribute.Relation<
+      'api::notification.notification',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    notifText: Attribute.String & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::notification.notification',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::notification.notification',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiParcourParcour extends Schema.CollectionType {
   collectionName: 'parcours';
   info: {
@@ -1251,6 +1251,49 @@ export interface ApiProfilProfil extends Schema.CollectionType {
   };
 }
 
+export interface ApiRelationRelation extends Schema.CollectionType {
+  collectionName: 'relations';
+  info: {
+    singularName: 'relation';
+    pluralName: 'relations';
+    displayName: 'relation';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    destinataire: Attribute.Relation<
+      'api::relation.relation',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    expediteur: Attribute.Relation<
+      'api::relation.relation',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    status: Attribute.Enumeration<['attente', 'accept\u00E9e']> &
+      Attribute.DefaultTo<'attente'>;
+    type: Attribute.Enumeration<['FRIEND', 'PROFESIONAL']> & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::relation.relation',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::relation.relation',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiResourceResource extends Schema.CollectionType {
   collectionName: 'resources';
   info: {
@@ -1326,19 +1369,20 @@ declare module '@strapi/types' {
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
+      'plugin::i18n.locale': PluginI18NLocale;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
-      'plugin::i18n.locale': PluginI18NLocale;
       'api::conversation.conversation': ApiConversationConversation;
       'api::education.education': ApiEducationEducation;
       'api::experience.experience': ApiExperienceExperience;
-      'api::invitation.invitation': ApiInvitationInvitation;
       'api::lesson.lesson': ApiLessonLesson;
       'api::message.message': ApiMessageMessage;
       'api::module.module': ApiModuleModule;
+      'api::notification.notification': ApiNotificationNotification;
       'api::parcour.parcour': ApiParcourParcour;
       'api::profil.profil': ApiProfilProfil;
+      'api::relation.relation': ApiRelationRelation;
       'api::resource.resource': ApiResourceResource;
     }
   }
