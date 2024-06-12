@@ -1,38 +1,44 @@
 {
   "kind": "collectionType",
-  "collectionName": "invitations",
+  "collectionName": "relations",
   "info": {
-    "singularName": "invitation",
-    "pluralName": "invitations",
-    "displayName": "Invitation"
+    "singularName": "relation",
+    "pluralName": "relations",
+    "displayName": "relation",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
-    "expediteur": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "invitation"
-    },
     "destinataire": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
-      "inversedBy": "invitation"
+      "inversedBy": "relation"
+    },
+    "expediteur": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "relation"
     },
     "status": {
       "type": "enumeration",
       "enum": [
         "attente",
-        "acceptée",
-        "refusée"
-      ]
+        "acceptée"
+      ],
+      "default": "attente"
     },
-    "token": {
-      "type": "string"
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "FRIEND",
+        "PROFESIONAL"
+      ],
+      "required": true
     }
   }
 }

@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * invitation service
+ * relation service
  */
 
 const { createCoreService } = require('@strapi/strapi').factories;
 
-module.exports = createCoreService('api::invitation.invitation');
+module.exports = createCoreService('api::relation.relation');
