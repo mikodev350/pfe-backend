@@ -820,11 +820,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToMany',
       'api::experience.experience'
     >;
-    relation: Attribute.Relation<
-      'plugin::users-permissions.user',
-      'oneToOne',
-      'api::relation.relation'
-    >;
     type: Attribute.Enumeration<['TEACHER', 'STUDENT']> & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;

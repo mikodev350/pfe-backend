@@ -10,17 +10,18 @@ const FRIEND = "FRIEND";
 
 module.exports = ({ strapi }) => ({
   async createFriendsRelation(ctx) {
-    const { receiverId } = ctx.request.body;
+    const { recipientId } = ctx.request.body;
     const user = ctx.state.user;
-    const receiver = await strapi
-      .query("plugin::users-permissions.role")
-      .findOne({ where: { id: receiverId } });
-    if (!receiver) return ctx.badRequest("Role does not exist");
-    const type = findTypeRelation(user, receiver);
+    const recipient = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({ where: { id: recipientId } });
+    console.log(recipient);
+    if (!recipient) return ctx.badRequest("Role does not exist");
+    const type = findTypeRelation(user, recipient);
     // Check the receiverId if is a teacher or a student
-    await strapi.db.create({
+    await strapi.db.query("api::relation.relation").create({
       data: {
-        destinataire: receiver,
+        destinataire: recipient,
         expediteur: user,
         type: type,
       },
@@ -31,7 +32,7 @@ module.exports = ({ strapi }) => ({
     const { expediteurId } = ctx.request.body;
     const user = ctx.state.user;
     const expediteur = await strapi
-      .query("plugin::users-permissions.role")
+      .query("plugin::users-permissions.user")
       .findOne({ where: { id: expediteurId } });
     if (!expediteur) return ctx.badRequest("User donsnt exist");
 

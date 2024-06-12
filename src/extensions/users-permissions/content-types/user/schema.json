@@ -134,12 +134,6 @@
       "target": "api::experience.experience",
       "mappedBy": "users_permissions_user"
     },
-    "relation": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::relation.relation",
-      "mappedBy": "expediteur"
-    },
     "type": {
       "type": "enumeration",
       "enum": [
