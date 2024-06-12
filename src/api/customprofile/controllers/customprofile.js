@@ -33,7 +33,7 @@ module.exports = {
             },
           ],
         },
-        select: ["id"],
+        select: ["id", "status"],
         populate: {
           destinataire: {
             select: ["id"],
@@ -51,7 +51,9 @@ module.exports = {
       const filteredProfile = {
         username: profile.username,
         email: profile.email,
-        relation: relation,
+        relationIsExist: !!relation,
+        isFriends: relation?.status === "acceptée",
+        isRequestSender: relation?.destinataire?.id !== Number(userId),
         profil: profile.profil
           ? {
               nomFormation: profile.profil.nomFormation || null,

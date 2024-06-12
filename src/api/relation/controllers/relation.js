@@ -29,17 +29,25 @@ module.exports = ({ strapi }) => ({
     return ctx.send({ msg: "successed" });
   },
   async acceptRelation(ctx) {
-    const { expediteurId } = ctx.request.body;
+    const { recipientId: id } = ctx.request.body;
     const user = ctx.state.user;
-    const expediteur = await strapi
-      .query("plugin::users-permissions.user")
-      .findOne({ where: { id: expediteurId } });
-    if (!expediteur) return ctx.badRequest("User donsnt exist");
 
-    await strapi.db.update({
+    await strapi.db.query("api::relation.relation").update({
       where: {
-        destinataire: user,
-        expediteur: expediteur,
+        $or: [
+          {
+            destinataire: user,
+            expediteur: {
+              id,
+            },
+          },
+          {
+            expediteur: user,
+            destinataire: {
+              id,
+            },
+          },
+        ],
       },
       data: {
         status: "acceptée",
@@ -48,23 +56,28 @@ module.exports = ({ strapi }) => ({
     return ctx.send({ msg: "successed" });
   },
   async declineRelation(ctx) {
-    const { userTargetId } = ctx.request.body;
+    const { id } = ctx.request.params;
     const user = ctx.state.user;
 
-    await strapi.db.delete({
+    await strapi.db.query("api::relation.relation").delete({
       where: {
         $or: [
           {
             destinataire: user,
-            expediteur: userTargetId,
+            expediteur: {
+              id,
+            },
           },
           {
             expediteur: user,
-            destinataire: userTargetId,
+            destinataire: {
+              id,
+            },
           },
         ],
       },
     });
+
     return ctx.send({ msg: "DELETED" });
   },
 });
