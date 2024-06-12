@@ -18,13 +18,6 @@ module.exports = {
         }
       );
 
-      console.log("====================================");
-      console.log("====================================");
-      console.log("this is mmy profile ");
-      console.log("====================================");
-      console.log(profile);
-      console.log("====================================");
-
       if (!profile) {
         throw new Error("Profile not found");
       }
