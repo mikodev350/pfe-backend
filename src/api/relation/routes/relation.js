@@ -7,6 +7,11 @@
 module.exports = {
   routes: [
     {
+      method: "GET",
+      path: "/pending-relations",
+      handler: "relation.findPendingRelation",
+    },
+    {
       method: "POST",
       path: "/relation",
       handler: "relation.createFriendsRelation",
