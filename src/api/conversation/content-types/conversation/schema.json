@@ -4,7 +4,8 @@
   "info": {
     "singularName": "conversation",
     "pluralName": "conversations",
-    "displayName": "conversation"
+    "displayName": "conversation",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -25,6 +26,14 @@
       "relation": "oneToMany",
       "target": "api::message.message",
       "mappedBy": "conversation"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "PRIVATE",
+        "GROUP"
+      ],
+      "required": true
     }
   }
 }

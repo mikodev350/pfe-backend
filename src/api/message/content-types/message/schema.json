@@ -4,7 +4,8 @@
   "info": {
     "singularName": "message",
     "pluralName": "messages",
-    "displayName": "message"
+    "displayName": "message",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -30,25 +31,38 @@
       "type": "datetime"
     },
     "image": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
       "allowedTypes": [
         "images"
-      ],
-      "type": "media",
-      "multiple": true
+      ]
     },
     "audio": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
+        "audios"
+      ]
+    },
+    "document": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "files"
+      ]
+    },
+    "attachement": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
         "audios"
       ],
       "type": "media",
-      "multiple": false
-    },
-    "document": {
-      "allowedTypes": [
-        "files"
-      ],
-      "type": "media",
-      "multiple": false
+      "multiple": true
     }
   }
 }

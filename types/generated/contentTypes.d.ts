@@ -844,6 +844,7 @@ export interface ApiConversationConversation extends Schema.CollectionType {
     singularName: 'conversation';
     pluralName: 'conversations';
     displayName: 'conversation';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -860,6 +861,7 @@ export interface ApiConversationConversation extends Schema.CollectionType {
       'oneToMany',
       'api::message.message'
     >;
+    type: Attribute.Enumeration<['PRIVATE', 'GROUP']> & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1014,6 +1016,7 @@ export interface ApiMessageMessage extends Schema.CollectionType {
     singularName: 'message';
     pluralName: 'messages';
     displayName: 'message';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -1034,6 +1037,7 @@ export interface ApiMessageMessage extends Schema.CollectionType {
     image: Attribute.Media;
     audio: Attribute.Media;
     document: Attribute.Media;
+    attachement: Attribute.Media;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

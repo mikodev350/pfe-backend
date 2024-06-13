@@ -31,7 +31,6 @@ module.exports = ({ strapi }) => ({
   async acceptRelation(ctx) {
     const { recipientId: id } = ctx.request.body;
     const user = ctx.state.user;
-
     await strapi.db.query("api::relation.relation").update({
       where: {
         $or: [
@@ -51,6 +50,14 @@ module.exports = ({ strapi }) => ({
       },
       data: {
         status: "acceptée",
+      },
+    });
+
+    // Create conversation
+    await strapi.db.query("api::conversation.conversation").create({
+      data: {
+        participants: [user.id, id],
+        type: "PRIVATE",
       },
     });
     return ctx.send({ msg: "successed" });
@@ -79,6 +86,29 @@ module.exports = ({ strapi }) => ({
     });
 
     return ctx.send({ msg: "DELETED" });
+  },
+  async findPendingRelation(ctx) {
+    const user = ctx.state.user;
+    const invitations = await strapi.db
+      .query("api::relation.relation")
+      .findMany({
+        where: {
+          destinataire: user,
+        },
+        populate: {
+          expediteur: {
+            select: ["id", "username", "type", "email"],
+            populate: {
+              profil: {
+                populate: {
+                  photoProfil: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    return invitations;
   },
 });
 

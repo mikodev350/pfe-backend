@@ -1,9 +1,27 @@
-'use strict';
+"use strict";
 
 /**
  * conversation router
  */
 
-const { createCoreRouter } = require('@strapi/strapi').factories;
+const { createCoreRouter } = require("@strapi/strapi").factories;
 
-module.exports = createCoreRouter('api::conversation.conversation');
+module.exports = {
+  routes: [
+    {
+      method: "GET",
+      path: "/conversations",
+      handler: "conversation.findConversations",
+    },
+    {
+      method: "GET",
+      path: "/conversation/:id",
+      handler: "conversation.findOne",
+    },
+    {
+      method: "GET",
+      path: "/find-conversation-id",
+      handler: "conversation.findConversationId",
+    },
+  ],
+};
