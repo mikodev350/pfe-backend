@@ -13,17 +13,23 @@ module.exports = {
     };
 
     if (name) {
-      searchQuery.filters["parcours.name"] = { $contains: name };
+      searchQuery.filters.nom = { $contains: name };
     }
 
     if (parcours) {
-      searchQuery.filters.parcours = { id: { $in: parcours.split(",") } };
+      searchQuery.filters["parcours.id"] = {
+        $in: parcours.split(",").map((id) => parseInt(id)),
+      };
     }
     if (modules) {
-      searchQuery.filters.modules = { id: { $in: modules.split(",") } };
+      searchQuery.filters["modules.id"] = {
+        $in: modules.split(",").map((id) => parseInt(id)),
+      };
     }
     if (lessons) {
-      searchQuery.filters.lessons = { id: { $in: lessons.split(",") } };
+      searchQuery.filters["lessons.id"] = {
+        $in: lessons.split(",").map((id) => parseInt(id)),
+      };
     }
 
     try {
@@ -31,6 +37,12 @@ module.exports = {
         "api::resource.resource",
         searchQuery
       );
+
+      // Si aucun résultat trouvé, retourner un tableau vide
+      if (results.length === 0) {
+        ctx.send([]);
+        return;
+      }
 
       const data = results.map((result) => ({
         id: result.id,
@@ -48,13 +60,13 @@ module.exports = {
           ? result.resources.map((r) => r.nom).join(", ")
           : "",
       }));
+
       ctx.send(data);
     } catch (error) {
       strapi.log.error(error);
       ctx.throw(500, "Error fetching resources");
     }
   },
-
   async searchUsers(ctx) {
     try {
       const {
@@ -69,8 +81,6 @@ module.exports = {
         specialiteEnseigne,
         role,
       } = ctx.query;
-
-      console.log("Received query parameters:", ctx.query);
 
       let filters = {};
 
@@ -98,7 +108,7 @@ module.exports = {
         };
       if (role) filters.role = { name: role };
 
-      console.log("Constructed filters:", filters);
+      // console.log("Constructed filters:", filters);
 
       let users = await strapi.entityService.findMany(
         "plugin::users-permissions.user",
