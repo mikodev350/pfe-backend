@@ -9,14 +9,29 @@ module.exports = ({ strapi }) => ({
     const user = ctx.state.user;
     const conversations = await strapi.db
       .query("api::conversation.conversation")
-      .findOne({
+      .findMany({
         where: {
           participants: {
             $contains: [user.id],
           },
         },
+        populate: {
+          participants: {
+            select: ["id", "username", "type"],
+            populate: {
+              profil: {
+                select: ["id"],
+                populate: {
+                  photoProfil: {
+                    select: ["url"],
+                  },
+                },
+              },
+            },
+          },
+        },
       });
-    return conversations;
+    return { currentUserId: user.id, conversations };
   },
   async findOneByUserId(ctx) {
     const user = ctx.state.user;
@@ -67,14 +82,18 @@ module.exports = ({ strapi }) => ({
             $contains: [user.id],
           },
           id: id,
-          type: "PRIVATE",
         },
         populate: {
           participants: {
             select: ["id", "username", "type"],
             populate: {
               profil: {
-                select: ["photoProfil"],
+                select: ["id"],
+                populate: {
+                  photoProfil: {
+                    select: ["url"],
+                  },
+                },
               },
             },
           },
@@ -84,7 +103,12 @@ module.exports = ({ strapi }) => ({
                 select: ["id", "username", "type"],
                 populate: {
                   profil: {
-                    select: ["photoProfil"],
+                    select: ["id"],
+                    populate: {
+                      photoProfil: {
+                        select: ["url"],
+                      },
+                    },
                   },
                 },
               },
@@ -93,7 +117,11 @@ module.exports = ({ strapi }) => ({
           },
         },
       });
-    return conversation;
+    console.log("conversation" + conversation);
+    if (!conversation) {
+      ctx.notFound({ msg: "Conversation not found" });
+    }
+    return { ...conversation, currentUserId: user.id };
   },
   async findConversationId(ctx) {
     const user = ctx.state.user;
@@ -110,5 +138,50 @@ module.exports = ({ strapi }) => ({
         },
       });
     return conversation;
+  },
+  //create new message
+  async createMessage(ctx) {
+    const user = ctx.state.user;
+    const { id } = ctx.request.params;
+    console.log(ctx.request.body);
+    const conversation = await strapi.db
+      .query("api::conversation.conversation")
+      .findOne({
+        where: {
+          participants: {
+            $contains: [user.id],
+          },
+          id: id,
+        },
+      });
+
+    if (!conversation) {
+      ctx.notFound({ msg: "Conversation not found" });
+    }
+
+    const {
+      data: { message = "", type, fakeId, file },
+    } = ctx.request.body;
+    if (type === "TEXT") {
+      await strapi.db.query("api::message.message").create({
+        data: {
+          contenu: message,
+          expediteur: ctx.state.user,
+          conversation: id,
+        },
+      });
+
+      return { fakeId };
+    } else if (type === "VOICE") {
+      await strapi.db.query("api::message.message").create({
+        data: {
+          attachement: file,
+          expediteur: ctx.state.user,
+          conversation: id,
+        },
+      });
+      console.log(ctx.request.body);
+      return { fakeId };
+    }
   },
 });

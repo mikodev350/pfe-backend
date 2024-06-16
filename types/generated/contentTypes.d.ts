@@ -1034,9 +1034,6 @@ export interface ApiMessageMessage extends Schema.CollectionType {
       'api::conversation.conversation'
     >;
     horodatage: Attribute.DateTime;
-    image: Attribute.Media;
-    audio: Attribute.Media;
-    document: Attribute.Media;
     attachement: Attribute.Media;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;

@@ -52,14 +52,28 @@ module.exports = ({ strapi }) => ({
         status: "acceptée",
       },
     });
+    //check if conversation exists first
+    const conversationExist = await strapi.db
+      .query("api::conversation.conversation")
+      .findOne({
+        where: {
+          participants: {
+            $contains: [user.id, id],
+          },
+          type: "PRIVATE",
+        },
+      });
 
-    // Create conversation
-    await strapi.db.query("api::conversation.conversation").create({
-      data: {
-        participants: [user.id, id],
-        type: "PRIVATE",
-      },
-    });
+    if (!conversationExist) {
+      // Create conversation
+      await strapi.db.query("api::conversation.conversation").create({
+        data: {
+          participants: [user.id, id],
+          type: "PRIVATE",
+        },
+      });
+    }
+
     return ctx.send({ msg: "successed" });
   },
   async declineRelation(ctx) {

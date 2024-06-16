@@ -23,5 +23,10 @@ module.exports = {
       path: "/find-conversation-id",
       handler: "conversation.findConversationId",
     },
+    {
+      method: "POST",
+      path: "/conversation/:id",
+      handler: "conversation.createMessage",
+    },
   ],
 };
