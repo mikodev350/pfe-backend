@@ -11,9 +11,6 @@ module.exports = createCoreController("api::parcour.parcour", ({ strapi }) => ({
     try {
       const { data } = ctx.request.body;
 
-      // Log de débogage
-      console.log("Received data:", data);
-
       // Créer le parcours
       const createdPathway = await strapi.entityService.create(
         "api::parcour.parcour",

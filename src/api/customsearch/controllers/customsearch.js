@@ -70,7 +70,6 @@ module.exports = {
   async searchUsers(ctx) {
     try {
       const {
-        searchValue,
         username,
         typeEtudes,
         nomFormation,
@@ -84,13 +83,9 @@ module.exports = {
 
       let filters = {};
 
-      if (searchValue) {
-        filters.$or = [
-          { username: { $contains: searchValue } },
-          { email: { $contains: searchValue } },
-          { "profil.nom": { $contains: searchValue } },
-        ];
-      }
+      console.log("====================================");
+      console.log(ctx.query);
+      console.log("====================================");
 
       if (username) filters.username = { $contains: username };
       if (typeEtudes) filters["profil.typeEtudes"] = { $contains: typeEtudes };
@@ -108,8 +103,6 @@ module.exports = {
         };
       if (role) filters.role = { name: role };
 
-      // console.log("Constructed filters:", filters);
-
       let users = await strapi.entityService.findMany(
         "plugin::users-permissions.user",
         {
@@ -121,33 +114,36 @@ module.exports = {
       // Additional filtering for matieresEnseignees
       if (matieresEnseignees) {
         const matieresArray = matieresEnseignees.split(",");
-        users = users.filter((user) =>
-          user.profil.matieresEnseignees.some((matiere) =>
-            matieresArray.includes(matiere)
-          )
+        users = users.filter(
+          (user) =>
+            user.profil &&
+            user.profil.matieresEnseignees &&
+            user.profil.matieresEnseignees.some((matiere) =>
+              matieresArray.includes(matiere)
+            )
         );
       }
 
       // Format the users data
-      const formattedUsers = users.map((user) => ({
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role.name,
-        profil: {
-          nom: user.profil.nom,
-          typeEtudes: user.profil.typeEtudes,
-          nomFormation: user.profil.nomFormation,
-          niveauEtudes: user.profil.niveauEtudes,
-          niveauSpecifique: user.profil.niveauSpecifique,
-          matieresEnseignees: user.profil.matieresEnseignees,
-          niveauEnseigne: user.profil.niveauEnseigne,
-          specialiteEnseigne: user.profil.specialiteEnseigne,
-        },
-        profilePicture: user.profil.photoProfil
-          ? user.profil.photoProfil.url
-          : null,
-      }));
+      const formattedUsers = users.map((user) => {
+        const profil = user.profil || {};
+        return {
+          id: user.id,
+          username: user.username,
+          role: user.role ? user.role.name : "",
+          profil: {
+            nom: profil.nom || "",
+            typeEtudes: profil.typeEtudes || "",
+            nomFormation: profil.nomFormation || "",
+            niveauEtudes: profil.niveauEtudes || "",
+            niveauSpecifique: profil.niveauSpecifique || "",
+            matieresEnseignees: profil.matieresEnseignees || [],
+            niveauEnseigne: profil.niveauEnseigne || "",
+            specialiteEnseigne: profil.specialiteEnseigne || "",
+          },
+          profilePicture: profil.photoProfil ? profil.photoProfil.url : null,
+        };
+      });
 
       console.log("Retrieved users:", formattedUsers);
       ctx.send(formattedUsers);
