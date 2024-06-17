@@ -172,7 +172,7 @@ module.exports = ({ strapi }) => ({
       });
 
       return { fakeId };
-    } else if (type === "VOICE") {
+    } else if (type === "VOICE" || type === "FILES" || type === "IMAGES") {
       await strapi.db.query("api::message.message").create({
         data: {
           attachement: file,
@@ -180,7 +180,7 @@ module.exports = ({ strapi }) => ({
           conversation: id,
         },
       });
-      console.log(ctx.request.body);
+
       return { fakeId };
     }
   },
