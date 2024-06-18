@@ -53,6 +53,11 @@ module.exports = ({ strapi }) => ({
           },
         },
       });
+    console.log("====================================");
+    console.log("this is groupe converstation ");
+    console.log(conversations);
+
+    console.log("====================================");
     return { currentUserId: user.id, conversations };
   },
   // async findConversations(ctx) {
@@ -124,6 +129,7 @@ module.exports = ({ strapi }) => ({
       });
     return conversation;
   },
+
   async findOne(ctx) {
     const user = ctx.state.user;
     const { id } = ctx.request.params;
@@ -167,6 +173,9 @@ module.exports = ({ strapi }) => ({
               },
               attachement: true,
             },
+          },
+          admin: {
+            select: ["id", "username"], // Make sure admin field is populated correctly
           },
         },
       });

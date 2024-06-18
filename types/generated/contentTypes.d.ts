@@ -821,6 +821,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'api::experience.experience'
     >;
     type: Attribute.Enumeration<['TEACHER', 'STUDENT']> & Attribute.Required;
+    conversation: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::conversation.conversation'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -862,6 +867,11 @@ export interface ApiConversationConversation extends Schema.CollectionType {
       'api::message.message'
     >;
     type: Attribute.Enumeration<['PRIVATE', 'GROUP']> & Attribute.Required;
+    admin: Attribute.Relation<
+      'api::conversation.conversation',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
