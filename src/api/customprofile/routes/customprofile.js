@@ -24,5 +24,14 @@ module.exports = {
         policies: [],
       },
     },
+    {
+      method: "GET",
+      path: "/find-update-profile",
+      handler: "customprofile.FindMyProfileForUpdate",
+      config: {
+        policies: [],
+      },
+    },
+    // FindMyProfileForUpdate,
   ],
 };
