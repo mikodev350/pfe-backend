@@ -16,6 +16,7 @@ module.exports = ({ strapi }) => ({
           },
         },
       });
+    console.log(conversations);
     return conversations;
   },
   async findOneByUserId(ctx) {
