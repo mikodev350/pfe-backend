@@ -5,7 +5,7 @@
  */
 
 module.exports = ({ strapi }) => ({
-  async findConversations(ctx) {
+  async findPrivateConversations(ctx) {
     const user = ctx.state.user;
     const conversations = await strapi.db
       .query("api::conversation.conversation")
@@ -14,6 +14,7 @@ module.exports = ({ strapi }) => ({
           participants: {
             $contains: [user.id],
           },
+          type: "PRIVATE",
         },
         populate: {
           participants: {
@@ -33,6 +34,58 @@ module.exports = ({ strapi }) => ({
       });
     return { currentUserId: user.id, conversations };
   },
+
+  async findGroupConversations(ctx) {
+    const user = ctx.state.user;
+    const conversations = await strapi.db
+      .query("api::conversation.conversation")
+      .findMany({
+        where: {
+          participants: {
+            $contains: [user.id],
+          },
+          type: "GROUP",
+        },
+        select: ["titre"],
+        populate: {
+          participants: {
+            select: ["id", "username"],
+          },
+        },
+      });
+    return { currentUserId: user.id, conversations };
+  },
+  // async findConversations(ctx) {
+  //   const user = ctx.state.user;
+  //   const conversations = await strapi.db
+  //     .query("api::conversation.conversation")
+  //     .findMany({
+  //       where: {
+  //         participants: {
+  //           $contains: [user.id],
+  //         },
+  //       },
+  //       populate: {
+  //         participants: {
+  //           select: ["id", "username", "type"],
+  //           populate: {
+  //             profil: {
+  //               select: ["id"],
+  //               populate: {
+  //                 photoProfil: {
+  //                   select: ["url"],
+  //                 },
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+  //   console.log("====================================");
+  //   console.log(conversations);
+  //   console.log("====================================");
+  //   return { currentUserId: user.id, conversations };
+  // },
   async findOneByUserId(ctx) {
     const user = ctx.state.user;
     const { userId } = ctx.request.params;
@@ -143,7 +196,9 @@ module.exports = ({ strapi }) => ({
   async createMessage(ctx) {
     const user = ctx.state.user;
     const { id } = ctx.request.params;
-    console.log(ctx.request.body);
+    // console.log("====================================");
+    // console.log(ctx.request.body);
+    // console.log("====================================");
     const conversation = await strapi.db
       .query("api::conversation.conversation")
       .findOne({
@@ -182,6 +237,39 @@ module.exports = ({ strapi }) => ({
       });
 
       return { fakeId };
+    }
+  },
+
+  // create GRoupe conversation
+  async createConverstationGroup(ctx) {
+    const { titre, participants } = ctx.request.body;
+    const user = ctx.state.user;
+    console.log(ctx.request.body);
+
+    if (!titre || !participants || participants.length === 0) {
+      return ctx.badRequest("titre and participants are required.");
+    }
+
+    try {
+      // Create the group conversation
+      const newConversation = await strapi.db
+        .query("api::conversation.conversation")
+        .create({
+          data: {
+            titre: titre,
+            participants: [...participants, user.id],
+            type: "GROUP",
+          },
+        });
+
+      console.log("create new conversation");
+      return ctx.send({
+        msg: "Group created successfully",
+        conversation: newConversation,
+      });
+    } catch (error) {
+      strapi.log.error(error);
+      return ctx.internalServerError("Something went wrong.");
     }
   },
 });
