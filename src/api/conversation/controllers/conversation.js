@@ -153,35 +153,70 @@ module.exports = ({ strapi }) => ({
           },
           id: id,
         },
+        populate: {
+          participants: {
+            select: ["id"],
+          },
+        },
       });
 
     if (!conversation) {
       ctx.notFound({ msg: "Conversation not found" });
     }
 
+    console.log(strapi.usersSockets);
     const {
       data: { message = "", type, fakeId, file },
     } = ctx.request.body;
+    let newMessage = {};
     if (type === "TEXT") {
-      await strapi.db.query("api::message.message").create({
+      const result = await strapi.db.query("api::message.message").create({
         data: {
           contenu: message,
           expediteur: ctx.state.user,
           conversation: id,
         },
       });
-
-      return { fakeId };
+      newMessage = result;
     } else if (type === "VOICE" || type === "FILES" || type === "IMAGES") {
-      await strapi.db.query("api::message.message").create({
+      const result = await strapi.db.query("api::message.message").create({
         data: {
           attachement: file,
           expediteur: ctx.state.user,
           conversation: id,
         },
       });
-
-      return { fakeId };
+      newMessage = result;
     }
+    console.log(conversation);
+    const messageAdded = await strapi.db.query("api::message.message").findOne({
+      where: {
+        id: newMessage.id,
+      },
+      populate: {
+        participants: {
+          select: ["id", "username", "type"],
+          populate: {
+            profil: {
+              select: ["id"],
+              populate: {
+                photoProfil: {
+                  select: ["url"],
+                },
+              },
+            },
+          },
+        },
+        attachement: true,
+      },
+    });
+    for (let user of conversation.participants) {
+      const userId = user.id;
+      const socketIds = strapi.usersSockets[userId];
+      if (socketIds && socketIds.length > 0 && userId !== ctx.state.user.id) {
+        strapi.io.to(socketIds).emit("newMessage", { message: messageAdded });
+      }
+    }
+    return { fakeId };
   },
 });
