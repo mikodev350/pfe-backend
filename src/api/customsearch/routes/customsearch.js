@@ -16,5 +16,13 @@ module.exports = {
         policies: [],
       },
     },
+    {
+      method: "GET",
+      path: "/friends-search",
+      handler: "customsearch.searchFriends",
+      config: {
+        policies: [],
+      },
+    },
   ],
 };

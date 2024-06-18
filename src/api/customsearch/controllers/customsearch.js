@@ -152,4 +152,87 @@ module.exports = {
       ctx.throw(500, "Error fetching users");
     }
   },
+
+  async searchFriends(ctx) {
+    try {
+      const user = ctx.state.user;
+
+      // Define the filters
+      let filters = {
+        $and: [
+          { status: "acceptée" },
+          {
+            $or: [{ type: "FRIEND" }, { type: "PROFESIONAL" }],
+          },
+          {
+            $or: [{ expediteur: user.id }, { destinataire: user.id }],
+          },
+        ],
+      };
+
+      // Fetch the relations that match the filters
+      const relations = await strapi.entityService.findMany(
+        "api::relation.relation",
+        {
+          filters,
+          populate: ["destinataire", "expediteur"],
+        }
+      );
+
+      console.log("Relations found:", relations);
+
+      if (relations.length === 0) {
+        console.log("No relations found matching the criteria.");
+        ctx.send([]);
+        return;
+      }
+
+      // Extract the friend IDs
+      const friendIds = relations.map((relation) => {
+        return relation.expediteur.id === user.id
+          ? relation.destinataire.id
+          : relation.expediteur.id;
+      });
+
+      console.log("Friend IDs:", friendIds);
+
+      if (friendIds.length === 0) {
+        console.log("No friend IDs extracted.");
+        ctx.send([]);
+        return;
+      }
+
+      // Fetch user details for the friends
+      const friends = await strapi.entityService.findMany(
+        "plugin::users-permissions.user",
+        {
+          filters: { id: { $in: friendIds } },
+          populate: ["profile"],
+        }
+      );
+
+      console.log("Friends found:", friends);
+
+      if (friends.length === 0) {
+        console.log("No friends found for the given IDs.");
+        ctx.send([]);
+        return;
+      }
+
+      // Format the friends data
+      const formattedFriends = friends.map((friend) => ({
+        id: friend.id,
+        username: friend.username,
+        profile: {
+          name: friend.profile ? friend.profile.name : "",
+          // Add other profile fields if necessary
+        },
+      }));
+
+      ctx.send(formattedFriends);
+    } catch (error) {
+      strapi.log.error(error);
+      ctx.throw(500, "Error fetching friends");
+    }
+  },
 };
