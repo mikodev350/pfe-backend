@@ -31,21 +31,21 @@ module.exports = ({ strapi }) => ({
           seen_status: false,
         },
       });
-    // const total_new_messages = await strapi.db
-    //   .query("api::user-message-read-status.user-message-read-status")
-    //   .count({
-    //     distinct: ["course_hub"],
-    //     where: {
-    //       seen_status: false,
-
-    //       user: {
-    //         id: userId,
-    //       },
-    //     },
-    //   });
+    const total_new_messages = await strapi.db
+      .query("api::conversation.conversation")
+      .count({
+        where: {
+          participants: {
+            $contains: [userId],
+          },
+          users_seen_message: {
+            $notContains: [userId],
+          },
+        },
+      });
     return {
       notifications,
-      //   total_new_messages,
+      total_new_messages,
       total_count_Not_seen,
     };
   },

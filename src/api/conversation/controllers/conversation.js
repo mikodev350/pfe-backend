@@ -143,7 +143,7 @@ module.exports = ({ strapi }) => ({
   async createMessage(ctx) {
     const user = ctx.state.user;
     const { id } = ctx.request.params;
-    console.log(ctx.request.body);
+
     const conversation = await strapi.db
       .query("api::conversation.conversation")
       .findOne({
@@ -164,7 +164,6 @@ module.exports = ({ strapi }) => ({
       ctx.notFound({ msg: "Conversation not found" });
     }
 
-    console.log(strapi.usersSockets);
     const {
       data: { message = "", type, fakeId, file },
     } = ctx.request.body;
@@ -210,11 +209,21 @@ module.exports = ({ strapi }) => ({
         attachement: true,
       },
     });
+    await strapi.db.query("api::conversation.conversation").update({
+      where: {
+        id: conversation.id,
+      },
+      data: {
+        users_seen_message: [],
+      },
+    });
     for (let user of conversation.participants) {
       const userId = user.id;
       const socketIds = strapi.usersSockets[userId];
       if (socketIds && socketIds.length > 0 && userId !== ctx.state.user.id) {
-        strapi.io.to(socketIds).emit("newMessage", { message: messageAdded });
+        strapi.io
+          .to(socketIds)
+          .emit("newMessage", { message: messageAdded, conversationId: id });
       }
     }
     return { fakeId };
