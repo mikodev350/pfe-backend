@@ -862,6 +862,11 @@ export interface ApiConversationConversation extends Schema.CollectionType {
       'api::message.message'
     >;
     type: Attribute.Enumeration<['PRIVATE', 'GROUP']> & Attribute.Required;
+    users_seen_message: Attribute.Relation<
+      'api::conversation.conversation',
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1110,6 +1115,7 @@ export interface ApiNotificationNotification extends Schema.CollectionType {
     singularName: 'notification';
     pluralName: 'notifications';
     displayName: 'notification';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -1126,6 +1132,10 @@ export interface ApiNotificationNotification extends Schema.CollectionType {
       'plugin::users-permissions.user'
     >;
     notifText: Attribute.String & Attribute.Required;
+    redirect_url: Attribute.String;
+    seen_status: Attribute.Boolean &
+      Attribute.Required &
+      Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

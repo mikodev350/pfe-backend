@@ -34,6 +34,11 @@
         "GROUP"
       ],
       "required": true
+    },
+    "users_seen_message": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
     }
   }
 }
