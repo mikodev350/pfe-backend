@@ -3,23 +3,15 @@ module.exports = {
     {
       method: "GET",
       path: "/custom-profile/me",
-      handler: "customprofile.findOne",
+      handler: "customprofile.fetchMyProfile",
       config: {
         policies: [],
       },
     },
     {
       method: "GET",
-      path: "/get-my-profile/me",
-      handler: "customprofile.findOne",
-      config: {
-        policies: [],
-      },
-    },
-    {
-      method: "GET",
-      path: "/find-profile/:id",
-      handler: "customprofile.findUserProfileById",
+      path: "/user-profile/:id",
+      handler: "customprofile.fetchUserProfileById",
       config: {
         policies: [],
       },
@@ -32,6 +24,5 @@ module.exports = {
         policies: [],
       },
     },
-    // FindMyProfileForUpdate,
   ],
 };

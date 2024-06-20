@@ -4,9 +4,6 @@ const STUDENT = "STUDENT";
 const COATCH = "COATCH";
 const PROFESIONAL = "PROFESIONAL";
 const FRIEND = "FRIEND";
-/**
- * relation controller
- */
 
 module.exports = ({ strapi }) => ({
   async createFriendsRelation(ctx) {
@@ -15,10 +12,10 @@ module.exports = ({ strapi }) => ({
     const recipient = await strapi.db
       .query("plugin::users-permissions.user")
       .findOne({ where: { id: recipientId } });
-    console.log(recipient);
-    if (!recipient) return ctx.badRequest("Role does not exist");
+    if (!recipient) return ctx.badRequest("Recipient does not exist");
+
     const type = findTypeRelation(user, recipient);
-    // Check the receiverId if is a teacher or a student
+
     await strapi.db.query("api::relation.relation").create({
       data: {
         destinataire: recipient,
@@ -26,46 +23,47 @@ module.exports = ({ strapi }) => ({
         type: type,
       },
     });
-    return ctx.send({ msg: "successed" });
+
+    return ctx.send({ msg: "Request sent successfully" });
   },
+
   async acceptRelation(ctx) {
     const { recipientId: id } = ctx.request.body;
     const user = ctx.state.user;
+
     await strapi.db.query("api::relation.relation").update({
       where: {
         $or: [
           {
-            destinataire: user,
-            expediteur: {
-              id,
-            },
+            destinataire: user.id,
+            expediteur: id,
           },
           {
-            expediteur: user,
-            destinataire: {
-              id,
-            },
+            expediteur: user.id,
+            destinataire: id,
           },
         ],
       },
-      data: {
-        status: "acceptée",
-      },
+      data: { status: "acceptée" },
     });
-    //check if conversation exists first
+
     const conversationExist = await strapi.db
       .query("api::conversation.conversation")
       .findOne({
+        populate: ["participants"],
         where: {
-          participants: {
-            $contains: [user.id, id],
-          },
           type: "PRIVATE",
+          participants: {
+            $and: [{ id: user.id }, { id: id }],
+          },
         },
       });
 
+    console.log("THE CONVERSATION ");
+    console.log("conversationExist ");
+    console.log(conversationExist);
+
     if (!conversationExist) {
-      // Create conversation
       await strapi.db.query("api::conversation.conversation").create({
         data: {
           participants: [user.id, id],
@@ -74,8 +72,9 @@ module.exports = ({ strapi }) => ({
       });
     }
 
-    return ctx.send({ msg: "successed" });
+    return ctx.send({ msg: "Request accepted successfully" });
   },
+
   async declineRelation(ctx) {
     const { id } = ctx.request.params;
     const user = ctx.state.user;
@@ -85,39 +84,30 @@ module.exports = ({ strapi }) => ({
         $or: [
           {
             destinataire: user,
-            expediteur: {
-              id,
-            },
+            expediteur: { id },
           },
           {
             expediteur: user,
-            destinataire: {
-              id,
-            },
+            destinataire: { id },
           },
         ],
       },
     });
 
-    return ctx.send({ msg: "DELETED" });
+    return ctx.send({ msg: "Request declined successfully" });
   },
+
   async findPendingRelation(ctx) {
     const user = ctx.state.user;
     const invitations = await strapi.db
       .query("api::relation.relation")
       .findMany({
-        where: {
-          destinataire: user,
-        },
+        where: { destinataire: user },
         populate: {
           expediteur: {
             select: ["id", "username", "type", "email"],
             populate: {
-              profil: {
-                populate: {
-                  photoProfil: true,
-                },
-              },
+              profil: { populate: { photoProfil: true } },
             },
           },
         },

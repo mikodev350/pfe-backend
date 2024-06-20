@@ -131,10 +131,18 @@ module.exports = createCoreController(
     async findOne(ctx) {
       try {
         const { id } = ctx.params;
-        const resource = await strapi.entityService.findOne(
+
+        const filters = {
+          id: id,
+          users_permissions_user: {
+            id: ctx.state.user.id,
+          },
+        };
+
+        const resource = await strapi.entityService.findMany(
           "api::resource.resource",
-          id,
           {
+            filters,
             populate: [
               "parcours",
               "modules",
@@ -147,7 +155,11 @@ module.exports = createCoreController(
           }
         );
 
-        ctx.send(resource);
+        if (resource.length === 0) {
+          return ctx.throw(404, "Resource not found");
+        }
+
+        ctx.send(resource[0]);
       } catch (error) {
         ctx.throw(500, "Error fetching resource");
       }

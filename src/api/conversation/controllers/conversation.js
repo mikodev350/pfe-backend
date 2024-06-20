@@ -268,6 +268,7 @@ module.exports = ({ strapi }) => ({
             titre: titre,
             participants: [...participants, user.id],
             type: "GROUP",
+            admin: user.id,
           },
         });
 
