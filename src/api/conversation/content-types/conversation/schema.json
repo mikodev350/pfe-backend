@@ -29,17 +29,13 @@
     },
     "type": {
       "type": "enumeration",
-      "enum": [
-        "PRIVATE",
-        "GROUP"
-      ],
+      "enum": ["PRIVATE", "GROUP"],
       "required": true
     },
-    "admin": {
+    "users_seen_message": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "conversation"
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
     }
   }
 }

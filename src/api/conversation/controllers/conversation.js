@@ -205,9 +205,6 @@ module.exports = ({ strapi }) => ({
   async createMessage(ctx) {
     const user = ctx.state.user;
     const { id } = ctx.request.params;
-    // console.log("====================================");
-    // console.log(ctx.request.body);
-    // console.log("====================================");
     const conversation = await strapi.db
       .query("api::conversation.conversation")
       .findOne({
@@ -216,6 +213,11 @@ module.exports = ({ strapi }) => ({
             $contains: [user.id],
           },
           id: id,
+        },
+        populate: {
+          participants: {
+            select: ["id"],
+          },
         },
       });
 
@@ -226,27 +228,66 @@ module.exports = ({ strapi }) => ({
     const {
       data: { message = "", type, fakeId, file },
     } = ctx.request.body;
+    let newMessage = {};
     if (type === "TEXT") {
-      await strapi.db.query("api::message.message").create({
+      const result = await strapi.db.query("api::message.message").create({
         data: {
           contenu: message,
           expediteur: ctx.state.user,
           conversation: id,
         },
       });
-
-      return { fakeId };
+      newMessage = result;
     } else if (type === "VOICE" || type === "FILES" || type === "IMAGES") {
-      await strapi.db.query("api::message.message").create({
+      const result = await strapi.db.query("api::message.message").create({
         data: {
           attachement: file,
           expediteur: ctx.state.user,
           conversation: id,
         },
       });
-
-      return { fakeId };
+      newMessage = result;
     }
+    console.log(conversation);
+    const messageAdded = await strapi.db.query("api::message.message").findOne({
+      where: {
+        id: newMessage.id,
+      },
+      populate: {
+        participants: {
+          select: ["id", "username", "type"],
+          populate: {
+            profil: {
+              select: ["id"],
+              populate: {
+                photoProfil: {
+                  select: ["url"],
+                },
+              },
+            },
+          },
+        },
+        attachement: true,
+      },
+    });
+    await strapi.db.query("api::conversation.conversation").update({
+      where: {
+        id: conversation.id,
+      },
+      data: {
+        users_seen_message: [],
+      },
+    });
+    for (let user of conversation.participants) {
+      const userId = user.id;
+      const socketIds = strapi.usersSockets[userId];
+      if (socketIds && socketIds.length > 0 && userId !== ctx.state.user.id) {
+        strapi.io
+          .to(socketIds)
+          .emit("newMessage", { message: messageAdded, conversationId: id });
+      }
+    }
+    return { fakeId };
   },
 
   // create GRoupe conversation

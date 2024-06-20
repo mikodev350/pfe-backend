@@ -1,5 +1,7 @@
 "use strict";
 
+const profil = require("../../profil/controllers/profil");
+
 const STUDENT = "STUDENT";
 const COATCH = "COATCH";
 const PROFESIONAL = "PROFESIONAL";
@@ -11,9 +13,22 @@ module.exports = ({ strapi }) => ({
     const user = ctx.state.user;
     const recipient = await strapi.db
       .query("plugin::users-permissions.user")
-      .findOne({ where: { id: recipientId } });
-    if (!recipient) return ctx.badRequest("Recipient does not exist");
-
+      .findOne({
+        where: { id: recipientId },
+      });
+    const currentUser = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: user.id },
+        select: ["username", "id"],
+        populate: {
+          profil: {
+            photoProfil: true,
+          },
+        },
+      });
+    console.log(recipient);
+    if (!recipient) return ctx.badRequest("Role does not exist");
     const type = findTypeRelation(user, recipient);
 
     await strapi.db.query("api::relation.relation").create({
@@ -23,8 +38,23 @@ module.exports = ({ strapi }) => ({
         type: type,
       },
     });
-
-    return ctx.send({ msg: "Request sent successfully" });
+    const notification = await strapi.db
+      .query("api::notification.notification")
+      .create({
+        data: {
+          destinataire: recipient,
+          expediteur: user,
+          notifText: "te demande de l'accepte",
+          redirect_url: "/communaute",
+        },
+      });
+    const socketIds = strapi.usersSockets[recipient.id];
+    if (socketIds && socketIds.length) {
+      strapi.io.to(socketIds).emit("notification", {
+        notification: { ...notification, expediteur: currentUser },
+      });
+    }
+    return ctx.send({ msg: "successed" });
   },
 
   async acceptRelation(ctx) {

@@ -55,6 +55,46 @@ module.exports = {
             strapi.io = socket;
             strapi.usersSockets = usersSockets;
           }
+          socket.on("seen_conversation", async ({ conversationId }) => {
+            console.log("LOGS FROM SOCKET seen_conversation");
+            console.log(conversationId);
+            // Fetch the existing conversation
+            const conversation = await strapi.db
+              .query("api::conversation.conversation")
+              .findOne({
+                where: { id: conversationId },
+                select: ["id"],
+                populate: {
+                  users_seen_message: true,
+                },
+              });
+
+            if (conversation) {
+              const oldUsersSeenMessage = conversation.users_seen_message;
+
+              // Check if the user is already in the relation
+              const userExists = oldUsersSeenMessage.some(
+                (item) => item.id === user.id
+              );
+
+              if (!userExists) {
+                // If not, add the user to the relation
+                const newUsersSeenMessage = [
+                  ...oldUsersSeenMessage.map((item) => item.id),
+                  user.id,
+                ];
+
+                // Update the conversation with the new relation
+                await strapi.db.query("api::conversation.conversation").update({
+                  where: { id: conversationId },
+                  data: {
+                    users_seen_message: newUsersSeenMessage,
+                  },
+                });
+              }
+            }
+          });
+
           socket.on("disconnect", () => {
             if (user) {
               console.log("user disconnected");
