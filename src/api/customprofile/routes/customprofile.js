@@ -2,7 +2,7 @@ module.exports = {
   routes: [
     {
       method: "GET",
-      path: "/custom-profile/me",
+      path: "/get-my-profile/me",
       handler: "customprofile.fetchMyProfile",
       config: {
         policies: [],

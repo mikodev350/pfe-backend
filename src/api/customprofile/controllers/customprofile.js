@@ -39,6 +39,7 @@ module.exports = {
       const { id } = ctx.params;
       const userId = ctx.state.user.id;
 
+      console.log("fetchUserProfileById");
       if (!id) {
         return ctx.throw(400, "User ID is required");
       }

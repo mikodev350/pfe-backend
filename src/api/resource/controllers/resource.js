@@ -5,6 +5,7 @@ const { createCoreController } = require("@strapi/strapi").factories;
 module.exports = createCoreController(
   "api::resource.resource",
   ({ strapi }) => ({
+    /****************************************************************/
     async create(ctx) {
       try {
         const {
@@ -13,34 +14,36 @@ module.exports = createCoreController(
           parcours,
           module,
           lesson,
-          note,
+          WriteText,
           youtubeLink,
-          images,
+          image,
           audio,
           pdf,
           video,
           link,
-          referenceLivre,
+          bookReference,
         } = ctx.request.body;
 
         // Vérifier et associer les fichiers uploadés
         const createData = {
           nom: resourceName,
           format: format,
-          note: note,
+          note: WriteText,
           link: link,
-          referenceLivre: referenceLivre,
-          images: images ? images.map((img) => img.id) : [], // Stocker les IDs des images
-          audio: audio ? audio.id : null,
-          pdf: pdf ? pdf.id : null,
-          video: video ? video.id : null,
+          bookReference: bookReference,
+          image: image?.id || null,
+          audio: audio?.id || null,
+          pdf: pdf?.id || null,
+          video: video?.id || null,
           parcours: parcours,
           modules: module,
           lessons: lesson,
+          users_permissions_user: ctx.query.user.id,
+
           publishedAt: new Date(), // Définir la date de publication actuelle
-          users_permissions_user: ctx.state.user.id,
         };
 
+        // Créer la ressource
         const newResource = await strapi.entityService.create(
           "api::resource.resource",
           {
@@ -56,6 +59,7 @@ module.exports = createCoreController(
         ctx.throw(500, "Error creating resource");
       }
     },
+    /**********************************************/
     async getAllResources(ctx) {
       const resources = await strapi.entityService.findMany(
         "api::resource.resource",
@@ -73,6 +77,7 @@ module.exports = createCoreController(
       );
       ctx.send(resources);
     },
+    /**************************************************************/
     async find(ctx) {
       try {
         const { page = 1, pageSize = 10, section, search } = ctx.query;
@@ -175,31 +180,43 @@ module.exports = createCoreController(
           parcours,
           module,
           lesson,
-          note,
-          images,
+          WriteText,
+          youtubeLink,
+          image,
           audio,
           pdf,
           video,
           link,
-          referenceLivre,
+          bookReference,
         } = ctx.request.body;
+
+        // Log the entire request body for debugging
+        console.log("Request Body:", ctx.request.body);
 
         // Vérifier et associer les fichiers uploadés
         const updateData = {
           nom: resourceName,
           format: format,
-          note: note,
+          note: WriteText,
           link: link,
-          referenceLivre: referenceLivre,
-          images: images ? images.map((img) => img.id) : [], // Stocker les IDs des images
-          audio: audio ? audio.id : null,
-          pdf: pdf ? pdf.id : null,
-          video: video ? video.id : null,
+          bookReference: bookReference,
+          image: image?.id || null,
+          audio: audio?.id || null,
+          pdf: pdf?.id || null,
+          video: video?.id || null,
           parcours: parcours,
           modules: module,
           lessons: lesson,
+          users_permissions_user: ctx.query.user.id,
+          updatedAt: new Date(), // Définir la date de mise à jour actuelle
         };
 
+        // Logging the updateData object for debugging
+        console.log("====================================");
+        console.log("Update Data:", updateData);
+        console.log("====================================");
+
+        // Mettre à jour la ressource
         const updatedResource = await strapi.entityService.update(
           "api::resource.resource",
           id,
@@ -213,9 +230,11 @@ module.exports = createCoreController(
           data: updatedResource,
         });
       } catch (error) {
+        console.error("Error updating resource:", error);
         ctx.throw(500, "Error updating resource");
       }
     },
+
     /************************************************************************/
   })
 );
