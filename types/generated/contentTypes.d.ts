@@ -826,6 +826,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::conversation.conversation'
     >;
+    isadminConversation: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::conversation.conversation'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -870,6 +875,11 @@ export interface ApiConversationConversation extends Schema.CollectionType {
     users_seen_message: Attribute.Relation<
       'api::conversation.conversation',
       'oneToMany',
+      'plugin::users-permissions.user'
+    >;
+    admin: Attribute.Relation<
+      'api::conversation.conversation',
+      'oneToOne',
       'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;

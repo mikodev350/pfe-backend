@@ -147,6 +147,12 @@
       "relation": "oneToOne",
       "target": "api::conversation.conversation",
       "mappedBy": "admin"
+    },
+    "isadminConversation": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::conversation.conversation",
+      "mappedBy": "admin"
     }
   }
 }
