@@ -11,6 +11,14 @@ module.exports = {
       },
     },
     {
+      method: "GET",
+      path: "/lessons/:id",
+      handler: "lesson.findOne",
+      config: {
+        policies: [],
+      },
+    },
+    {
       method: "POST",
       path: "/lessons",
       handler: "lesson.create",

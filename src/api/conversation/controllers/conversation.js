@@ -294,7 +294,6 @@ module.exports = ({ strapi }) => ({
   async createConverstationGroup(ctx) {
     const { titre, participants } = ctx.request.body;
     const user = ctx.state.user;
-    console.log(ctx.request.body);
 
     if (!titre || !participants || participants.length === 0) {
       return ctx.badRequest("titre and participants are required.");

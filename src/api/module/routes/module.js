@@ -35,5 +35,14 @@ module.exports = createCoreRouter("api::module.module", {
         policies: [],
       },
     },
+    ,
+    {
+      method: "GET",
+      path: "/modules/:id",
+      handler: "module.findOne",
+      config: {
+        policies: [],
+      },
+    },
   ],
 });

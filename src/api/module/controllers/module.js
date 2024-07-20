@@ -9,18 +9,25 @@ const { createCoreController } = require("@strapi/strapi").factories;
 module.exports = createCoreController("api::module.module", ({ strapi }) => ({
   async create(ctx) {
     try {
-      const { nom, parcour } = ctx.request.body;
+      const { data } = ctx.request.body;
 
-      if (!nom || !parcour) {
+      console.log(data);
+      console.log("ctx.request.body");
+
+      if (!data.nom || !data.parcour) {
         return ctx.badRequest("Le nom du module et le parcours sont requis");
       }
 
+      const dataIntiale = {
+        nom: data.nom,
+        parcour: data.parcour,
+      };
       const newModule = await strapi.entityService.create(
         "api::module.module",
         {
           data: {
-            nom,
-            parcour,
+            nom: dataIntiale.nom,
+            parcour: dataIntiale.parcour,
             users_permissions_user: ctx.state.user.id,
           },
         }
@@ -32,78 +39,19 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
       ctx.throw(500, "Une erreur est survenue lors de la création du module");
     }
   },
-
-  async update(ctx) {
-    try {
-      const { id } = ctx.params;
-      const { data } = ctx.request.body;
-
-      console.log("Mise à jour du module id:", id, "avec les données:", data);
-
-      const updatedModule = await strapi.entityService.update(
-        "api::module.module",
-        id,
-        {
-          data,
-        }
-      );
-
-      ctx.send({
-        message: "Module mis à jour avec succès",
-        data: updatedModule,
-      });
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du module:", error);
-      ctx.throw(
-        500,
-        "Une erreur est survenue lors de la mise à jour du module"
-      );
-    }
-  },
-
   async find(ctx) {
     try {
       const { _page = 1, _limit = 5, _q = "", parcour } = ctx.query;
-      const page = parseInt(_page, 10);
-      const limit = parseInt(_limit, 10);
-      const start = (page - 1) * limit;
+      const page = parseInt(_page, 10) || 1;
+      const limit = parseInt(_limit, 10) || 5;
+      const query = _q || "";
+      const userId = ctx.state.user.id;
 
-      const where = {
-        users_permissions_user: {
-          id: ctx.state.user.id,
-        },
-      };
+      const result = await strapi
+        .service("api::module.module")
+        .findModules(page, limit, query, parcour, userId);
 
-      if (parcour) {
-        where.parcour = parcour;
-      }
-
-      if (_q) {
-        where.nom = { $contains: _q };
-      }
-
-      const [modules, total] = await Promise.all([
-        strapi.query("api::module.module").findMany({
-          where,
-          offset: start,
-          limit,
-        }),
-        strapi.query("api::module.module").count({ where }),
-      ]);
-
-      const totalPages = Math.ceil(total / limit);
-
-      ctx.send({
-        data: modules,
-        meta: {
-          pagination: {
-            page,
-            pageSize: limit,
-            pageCount: totalPages,
-            total,
-          },
-        },
-      });
+      ctx.send(result);
     } catch (error) {
       console.error("Erreur lors de la récupération des modules:", error);
       ctx.throw(
@@ -112,7 +60,33 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
       );
     }
   },
+  // /-------------------------------------------------------------------------------------/
+  async findOne(ctx) {
+    try {
+      const { id } = ctx.params;
+      const module = await strapi.entityService.findOne(
+        "api::module.module",
+        id
+      );
 
+      if (!module) {
+        return ctx.throw(404, "Module non trouvé");
+      }
+
+      ctx.send({
+        message: "Module trouvé avec succès",
+        data: module,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la récupération du module:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération du module"
+      );
+    }
+  },
+
+  /*****************************************************************************************/
   async delete(ctx) {
     try {
       const { id } = ctx.params;
@@ -156,6 +130,47 @@ module.exports = createCoreController("api::module.module", ({ strapi }) => ({
       ctx.throw(
         500,
         "Une erreur est survenue lors de la suppression du module et des leçons liées"
+      );
+    }
+  },
+  /********************************************************************************************/
+  async update(ctx) {
+    try {
+      const { id } = ctx.params;
+      const { nom } = ctx.request.body;
+      if (!nom) {
+        return ctx.badRequest("Le nom du module et le parcours sont requis");
+      }
+
+      // Vérifiez si le module existe
+      const existingModule = await strapi.entityService.findOne(
+        "api::module.module",
+        id
+      );
+      if (!existingModule) {
+        return ctx.throw(404, "Module non trouvé");
+      }
+
+      const updatedModule = await strapi.entityService.update(
+        "api::module.module",
+        id,
+        {
+          data: {
+            nom,
+            users_permissions_user: ctx.state.user.id,
+          },
+        }
+      );
+
+      ctx.send({
+        message: "Module mis à jour avec succès",
+        data: updatedModule,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du module:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la mise à jour du module"
       );
     }
   },

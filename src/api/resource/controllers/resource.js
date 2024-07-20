@@ -77,11 +77,12 @@ module.exports = createCoreController(
       );
       ctx.send(resources);
     },
-    /**************************************************************/
+    /*********************************************************************************/
     async find(ctx) {
       try {
-        const { page = 1, pageSize = 10, section, search } = ctx.query;
-
+        // const { page = 1, pageSize = 10, section, search } = ctx.query;
+        const { page, pageSize = 5, section, search } = ctx.query;
+        console.log(ctx.query);
         const filters = {
           users_permissions_user: {
             id: ctx.state.user.id,
@@ -95,7 +96,7 @@ module.exports = createCoreController(
           filters.name = { $contains: search };
         }
 
-        const start = (page - 1) * pageSize;
+        const start = (Number(page) - 1) * pageSize;
         const limit = pageSize;
 
         const [resources, total] = await Promise.all([
@@ -131,7 +132,7 @@ module.exports = createCoreController(
         ctx.throw(500, "Error fetching resources");
       }
     },
-    /****************************************************/
+    /*********************************************************/
 
     async findOne(ctx) {
       try {

@@ -1,0 +1,62 @@
+"use strict";
+
+module.exports = {
+  async findAllData(ctx) {
+    try {
+      const { _page = 1, _limit = 5, _q = "" } = ctx.query;
+      const page = parseInt(_page, 10);
+      const limit = parseInt(_limit, 10);
+      const userId = ctx.state.user.id;
+
+      const where = {
+        users_permissions_user: {
+          id: userId,
+        },
+      };
+
+      if (_q) {
+        where.nom = { $contains: _q };
+      }
+
+      const [parcours, totalParcours] = await Promise.all([
+        strapi.db.query("api::parcour.parcour").findMany({
+          where,
+          start: (page - 1) * limit,
+          limit,
+          populate: {
+            modules: {
+              populate: {
+                lessons: true,
+              },
+            },
+          },
+        }),
+        strapi.db.query("api::parcour.parcour").count({ where }),
+      ]);
+
+      if (!parcours || !Array.isArray(parcours)) {
+        throw new Error("Parcours data is invalid or not an array");
+      }
+
+      const totalPages = Math.ceil(totalParcours / limit);
+
+      ctx.send({
+        data: parcours,
+        meta: {
+          pagination: {
+            page,
+            pageSize: limit,
+            pageCount: totalPages,
+            total: totalParcours,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération des données"
+      );
+    }
+  },
+};
