@@ -18,6 +18,7 @@ module.exports = {
         where.nom = { $contains: _q };
       }
 
+      // Fetching parcours
       const [parcours, totalParcours] = await Promise.all([
         strapi.db.query("api::parcour.parcour").findMany({
           where,
@@ -38,16 +39,51 @@ module.exports = {
         throw new Error("Parcours data is invalid or not an array");
       }
 
-      const totalPages = Math.ceil(totalParcours / limit);
+      // Fetching resources
+      const [resources, totalResources] = await Promise.all([
+        strapi.db.query("api::resource.resource").findMany({
+          where,
+          start: (page - 1) * limit,
+          limit,
+          populate: [
+            "parcours",
+            "modules",
+            "lessons",
+            "images",
+            "audio",
+            "pdf",
+            "video",
+          ],
+        }),
+        strapi.db.query("api::resource.resource").count({ where }),
+      ]);
+
+      if (!resources || !Array.isArray(resources)) {
+        throw new Error("Resources data is invalid or not an array");
+      }
+
+      const totalPagesParcours = Math.ceil(totalParcours / limit);
+      const totalPagesResources = Math.ceil(totalResources / limit);
 
       ctx.send({
-        data: parcours,
+        data: {
+          parcours,
+          resources,
+        },
         meta: {
           pagination: {
-            page,
-            pageSize: limit,
-            pageCount: totalPages,
-            total: totalParcours,
+            parcours: {
+              page,
+              pageSize: limit,
+              pageCount: totalPagesParcours,
+              total: totalParcours,
+            },
+            resources: {
+              page,
+              pageSize: limit,
+              pageCount: totalPagesResources,
+              total: totalResources,
+            },
           },
         },
       });
