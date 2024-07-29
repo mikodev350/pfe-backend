@@ -9,7 +9,7 @@ module.exports = createCoreController(
     async create(ctx) {
       try {
         const {
-          resourceName,
+          nom,
           format,
           parcours,
           module,
@@ -42,7 +42,7 @@ module.exports = createCoreController(
 
         // Verify and associate the uploaded files
         const createData = {
-          nom: resourceName,
+          nom: nom,
           format: format,
           note: note,
           link: link,
@@ -58,7 +58,7 @@ module.exports = createCoreController(
           publishedAt: new Date(), // Set the current publication date
         };
 
-        console.log("Data to be created:", createData);
+        // console.log("Data to be created:", createData);
 
         // Create the resource
         const newResource = await strapi.entityService.create(
@@ -68,9 +68,26 @@ module.exports = createCoreController(
           }
         );
 
+        // Fetch the newly created resource with populated relations
+        const resourceWithRelations = await strapi.entityService.findOne(
+          "api::resource.resource",
+          newResource.id,
+          {
+            populate: [
+              "images",
+              "audio",
+              "pdf",
+              "video",
+              "parcours",
+              "modules",
+              "lessons",
+            ],
+          }
+        );
+
         ctx.send({
           message: "Resource created successfully",
-          data: newResource,
+          data: resourceWithRelations,
         });
       } catch (error) {
         console.error("Error creating resource:", error); // Log the error for debugging
@@ -190,9 +207,9 @@ module.exports = createCoreController(
       }
     },
     /************************************************************************/
+
     async update(ctx) {
       try {
-        const { id } = ctx.params; // Get the resource ID from the URL parameters
         const {
           resourceName,
           format,
@@ -209,16 +226,20 @@ module.exports = createCoreController(
           userId,
         } = ctx.request.body;
 
-        // Check if the resource exists
+        console.log(ctx.request.body);
+        const { id } = ctx.params;
+
+        // Vérifiez si la ressource existe
         const existingResource = await strapi.entityService.findOne(
           "api::resource.resource",
           id
         );
+
         if (!existingResource) {
           return ctx.throw(404, "Resource not found");
         }
 
-        // Check if the user exists
+        // Vérifiez si l'utilisateur existe
         const user = await strapi
           .query("plugin::users-permissions.user")
           .findOne({ where: { id: userId } });
@@ -227,14 +248,22 @@ module.exports = createCoreController(
           return ctx.throw(404, "User not found");
         }
 
-        console.log("====================================");
-        console.log(ctx.request.body);
-        console.log("====================================");
+        // Préparez les IDs des images
+        const imageIds = images
+          ? images.map((image) => image?.id).filter(Boolean)
+          : [];
 
-        // Prepare images array
-        const imageIds = images ? images.map((image) => image.id) : [];
+        // Vérifiez les relations
+        const validParcours =
+          parcours && parcours.length
+            ? parcours.map((p) => p).filter(Boolean)
+            : [];
+        const validModules =
+          module && module.length ? module.map((m) => m).filter(Boolean) : [];
+        const validLessons =
+          lesson && lesson.length ? lesson.map((l) => l).filter(Boolean) : [];
 
-        // Verify and associate the uploaded files
+        // Préparez les données à mettre à jour
         const updateData = {
           nom: resourceName,
           format: format,
@@ -245,19 +274,18 @@ module.exports = createCoreController(
           audio: audio && audio.id ? audio.id : null,
           pdf: pdf && pdf.id ? pdf.id : null,
           video: video && video.id ? video.id : null,
-          parcours: parcours,
-          modules: module,
-          lessons: lesson,
+          parcours: validParcours.length ? validParcours : null,
+          modules: validModules.length ? validModules : null,
+          lessons: validLessons.length ? validLessons : null,
           users_permissions_user: userId,
+          publishedAt: new Date(), // Définissez la date de publication actuelle
         };
 
-        // Update the resource
+        // Mettez à jour la ressource
         const updatedResource = await strapi.entityService.update(
           "api::resource.resource",
           id,
-          {
-            data: updateData,
-          }
+          { data: updateData }
         );
 
         ctx.send({
@@ -269,6 +297,92 @@ module.exports = createCoreController(
         ctx.throw(500, "Error updating resource");
       }
     },
+
+    // async update(ctx) {
+    //   try {
+    //     const {
+    //       resourceName,
+    //       format,
+    //       parcours,
+    //       module,
+    //       lesson,
+    //       note,
+    //       images,
+    //       audio,
+    //       pdf,
+    //       video,
+    //       link,
+    //       bookReference,
+    //       userId,
+    //     } = ctx.request.body;
+
+    //     const { id } = ctx.params;
+
+    //     // Check if the resource exists
+    //     const existingResource = await strapi.entityService.findOne(
+    //       "api::resource.resource",
+    //       id
+    //     );
+
+    //     if (!existingResource) {
+    //       return ctx.throw(404, "Resource not found");
+    //     }
+
+    //     // Check if the user exists
+    //     const user = await strapi
+    //       .query("plugin::users-permissions.user")
+    //       .findOne({ where: { id: userId } });
+
+    //     if (!user) {
+    //       return ctx.throw(404, "User not found");
+    //     }
+
+    //     console.log("====================================");
+    //     console.log(ctx.request.body);
+    //     console.log("====================================");
+
+    //     // Prepare images array, filtering out undefined values
+    //     const imageIds = images
+    //       ? images
+    //           .filter((image) => image !== undefined)
+    //           .map((image) => image.id)
+    //       : [];
+
+    //     // Verify and associate the uploaded files
+    //     const updateData = {
+    //       nom: resourceName,
+    //       format: format,
+    //       note: note,
+    //       link: link,
+    //       bookReference: bookReference,
+    //       images: imageIds,
+    //       audio: audio && audio.id ? audio.id : null,
+    //       pdf: pdf && pdf.id ? pdf.id : null,
+    //       video: video && video.id ? video.id : null,
+    //       parcours: parcours, // Ensure parcours is a valid ID
+    //       modules: module, // Ensure module is a valid ID
+    //       lessons: lesson, // Ensure lesson is a valid ID
+    //       users_permissions_user: userId,
+    //     };
+
+    //     console.log("Data to be updated:", updateData);
+
+    //     // Update the resource
+    //     const updatedResource = await strapi.entityService.update(
+    //       "api::resource.resource",
+    //       existingResource.id,
+    //       { data: updateData }
+    //     );
+
+    //     ctx.send({
+    //       message: "Resource updated successfully",
+    //       data: updatedResource,
+    //     });
+    //   } catch (error) {
+    //     console.error("Error updating resource:", error); // Log the error for debugging
+    //     ctx.throw(500, "Error updating resource");
+    //   }
+    // },
 
     /************************************************************************/
   })
