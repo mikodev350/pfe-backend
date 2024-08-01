@@ -102,8 +102,8 @@ module.exports = createCoreController(
         {
           populate: [
             "parcours",
-            "module",
-            "lesson",
+            "modules",
+            "lessons",
             "images",
             "audio",
             "pdf",
@@ -140,8 +140,8 @@ module.exports = createCoreController(
             filters,
             populate: [
               "parcours",
-              "module",
-              "lesson",
+              "modules",
+              "lessons",
               "images",
               "audio",
               "pdf",
