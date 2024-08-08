@@ -12,8 +12,8 @@ module.exports = createCoreController(
           nom,
           format,
           parcours,
-          module,
-          lesson,
+          modules,
+          lessons,
           note,
           images,
           audio,
@@ -33,10 +33,6 @@ module.exports = createCoreController(
           return ctx.throw(404, "User not found");
         }
 
-        console.log("====================================");
-        console.log(ctx.request.body);
-        console.log("====================================");
-
         // Prepare images array
         const imageIds = images ? images.map((image) => image.id) : [];
 
@@ -52,8 +48,8 @@ module.exports = createCoreController(
           pdf: pdf && pdf.id ? pdf.id : null,
           video: video && video.id ? video.id : null,
           parcours: parcours, // Ensure parcours is a valid ID
-          modules: module, // Ensure module is a valid ID
-          lessons: lesson, // Ensure lesson is a valid ID
+          modules: modules, // Ensure module is a valid ID
+          lessons: lessons, // Ensure lesson is a valid ID
           users_permissions_user: userId,
           publishedAt: new Date(), // Set the current publication date
         };
@@ -116,20 +112,21 @@ module.exports = createCoreController(
     /*********************************************************************************/
     async find(ctx) {
       try {
-        // const { page = 1, pageSize = 10, section, search } = ctx.query;
-        const { page, pageSize = 5, section, search } = ctx.query;
+        const { page = 1, pageSize = 5, _q } = ctx.query;
+
+        console.log("====================================");
         console.log(ctx.query);
+        console.log("====================================");
+        // Initialisation des filtres
         const filters = {
           users_permissions_user: {
             id: ctx.state.user.id,
           },
         };
 
-        if (section) {
-          filters.section = section;
-        }
-        if (search) {
-          filters.name = { $contains: search };
+        // Ajout du filtre pour la recherche si présent
+        if (_q) {
+          filters.nom = { $contains: _q };
         }
 
         const start = (Number(page) - 1) * pageSize;
@@ -150,7 +147,6 @@ module.exports = createCoreController(
             start,
             limit,
           }),
-
           strapi.entityService.count("api::resource.resource", {
             filters,
           }),
@@ -168,6 +164,7 @@ module.exports = createCoreController(
         ctx.throw(500, "Error fetching resources");
       }
     },
+
     /*********************************************************/
 
     async findOne(ctx) {
@@ -211,11 +208,11 @@ module.exports = createCoreController(
     async update(ctx) {
       try {
         const {
-          resourceName,
+          nom,
           format,
           parcours,
-          module,
-          lesson,
+          modules,
+          lessons,
           note,
           images,
           audio,
@@ -226,9 +223,18 @@ module.exports = createCoreController(
           userId,
         } = ctx.request.body;
 
-        console.log(ctx.request.body);
         const { id } = ctx.params;
 
+        console.log(
+          "-----------------------------------------------------------------------"
+        );
+
+        console.log("ctx.request.body");
+
+        console.log(ctx.request.body);
+        console.log(
+          "-----------------------------------------------------------------------"
+        );
         // Vérifiez si la ressource existe
         const existingResource = await strapi.entityService.findOne(
           "api::resource.resource",
@@ -259,13 +265,17 @@ module.exports = createCoreController(
             ? parcours.map((p) => p).filter(Boolean)
             : [];
         const validModules =
-          module && module.length ? module.map((m) => m).filter(Boolean) : [];
+          modules && modules.length
+            ? modules.map((m) => m).filter(Boolean)
+            : [];
         const validLessons =
-          lesson && lesson.length ? lesson.map((l) => l).filter(Boolean) : [];
+          lessons && lessons.length
+            ? lessons.map((l) => l).filter(Boolean)
+            : [];
 
         // Préparez les données à mettre à jour
         const updateData = {
-          nom: resourceName,
+          nom: nom,
           format: format,
           note: note,
           link: link,
@@ -280,6 +290,17 @@ module.exports = createCoreController(
           users_permissions_user: userId,
           publishedAt: new Date(), // Définissez la date de publication actuelle
         };
+
+        console.log(
+          "-----------------------------------------------------------------------"
+        );
+
+        console.log("updateData");
+
+        console.log(updateData);
+        console.log(
+          "-----------------------------------------------------------------------"
+        );
 
         // Mettez à jour la ressource
         const updatedResource = await strapi.entityService.update(
