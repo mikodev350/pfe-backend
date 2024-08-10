@@ -153,6 +153,12 @@
       "relation": "oneToOne",
       "target": "api::conversation.conversation",
       "mappedBy": "admin"
+    },
+    "devoir": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::devoir.devoir",
+      "mappedBy": "teacher"
     }
   }
 }

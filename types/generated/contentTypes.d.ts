@@ -831,6 +831,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::conversation.conversation'
     >;
+    devoir: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::devoir.devoir'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -893,6 +898,43 @@ export interface ApiConversationConversation extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::conversation.conversation',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDevoirDevoir extends Schema.CollectionType {
+  collectionName: 'devoirs';
+  info: {
+    singularName: 'devoir';
+    pluralName: 'devoirs';
+    displayName: 'devoir';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    titre: Attribute.String;
+    description: Attribute.Text;
+    teacher: Attribute.Relation<
+      'api::devoir.devoir',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::devoir.devoir',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::devoir.devoir',
       'oneToOne',
       'admin::user'
     > &
@@ -1395,6 +1437,7 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'api::conversation.conversation': ApiConversationConversation;
+      'api::devoir.devoir': ApiDevoirDevoir;
       'api::education.education': ApiEducationEducation;
       'api::experience.experience': ApiExperienceExperience;
       'api::lesson.lesson': ApiLessonLesson;
