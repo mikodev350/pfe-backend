@@ -836,6 +836,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::devoir.devoir'
     >;
+    group: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::group.group'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1019,6 +1024,47 @@ export interface ApiExperienceExperience extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::experience.experience',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiGroupGroup extends Schema.CollectionType {
+  collectionName: 'groups';
+  info: {
+    singularName: 'group';
+    pluralName: 'groups';
+    displayName: 'group';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nom: Attribute.String;
+    members: Attribute.Relation<
+      'api::group.group',
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
+    professeur: Attribute.Relation<
+      'api::group.group',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::group.group',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::group.group',
       'oneToOne',
       'admin::user'
     > &
@@ -1440,6 +1486,7 @@ declare module '@strapi/types' {
       'api::devoir.devoir': ApiDevoirDevoir;
       'api::education.education': ApiEducationEducation;
       'api::experience.experience': ApiExperienceExperience;
+      'api::group.group': ApiGroupGroup;
       'api::lesson.lesson': ApiLessonLesson;
       'api::message.message': ApiMessageMessage;
       'api::module.module': ApiModuleModule;
