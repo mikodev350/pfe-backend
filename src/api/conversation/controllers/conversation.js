@@ -37,29 +37,34 @@ module.exports = ({ strapi }) => ({
 
   async findGroupConversations(ctx) {
     const user = ctx.state.user;
-    const conversations = await strapi.db
-      .query("api::conversation.conversation")
-      .findMany({
-        where: {
-          participants: {
-            $contains: [user.id],
-          },
-          type: "GROUP",
-        },
-        select: ["titre"],
-        populate: {
-          participants: {
-            select: ["id", "username"],
-          },
-        },
-      });
-    console.log("====================================");
-    console.log("this is groupe converstation ");
-    console.log(conversations);
 
-    console.log("====================================");
-    return { currentUserId: user.id, conversations };
+    try {
+      const conversations = await strapi.db
+        .query("api::conversation.conversation")
+        .findMany({
+          where: {
+            participants: {
+              id: user.id,
+            },
+            type: "GROUP",
+          },
+          select: ["titre"],
+          populate: {
+            participants: {
+              select: ["id", "username"],
+            },
+          },
+        });
+
+      console.log("this is groupe conversation", conversations);
+
+      return { currentUserId: user.id, conversations };
+    } catch (error) {
+      console.error("Error fetching group conversations:", error);
+      ctx.throw(500, "Internal Server Error");
+    }
   },
+
   // async findConversations(ctx) {
   //   const user = ctx.state.user;
   //   const conversations = await strapi.db
@@ -133,6 +138,7 @@ module.exports = ({ strapi }) => ({
   async findOne(ctx) {
     const user = ctx.state.user;
     const { id } = ctx.request.params;
+
     const conversation = await strapi.db
       .query("api::conversation.conversation")
       .findOne({
@@ -175,14 +181,39 @@ module.exports = ({ strapi }) => ({
             },
           },
           admin: {
-            select: ["id", "username"], // Make sure admin field is populated correctly
+            select: ["id", "username"],
           },
         },
       });
-    console.log("conversation" + conversation);
+
     if (!conversation) {
-      ctx.notFound({ msg: "Conversation not found" });
+      return ctx.notFound({ msg: "Conversation not found" });
     }
+
+    // Handle default profile picture for participants
+    conversation.participants.forEach((participant) => {
+      if (
+        !participant.profil.photoProfil ||
+        !participant.profil.photoProfil.url
+      ) {
+        participant.profil.photoProfil = {
+          url: "/uploads/images_1_1f1e6e00bc.jpeg",
+        }; // Set default image URL
+      }
+    });
+
+    // Handle default profile picture for message senders (expediteurs)
+    conversation.messages.forEach((message) => {
+      if (
+        !message.expediteur.profil.photoProfil ||
+        !message.expediteur.profil.photoProfil.url
+      ) {
+        message.expediteur.profil.photoProfil = {
+          url: "/uploads/images_1_1f1e6e00bc.jpeg",
+        }; // Set default image URL
+      }
+    });
+
     return { ...conversation, currentUserId: user.id };
   },
   async findConversationId(ctx) {

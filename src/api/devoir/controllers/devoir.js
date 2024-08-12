@@ -50,7 +50,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
     }
   },
 
-  // Récupération de tous les devoirs
+  // Récupération de tous les devoirs avec pagination
   async find(ctx) {
     try {
       const { page = 1, pageSize = 5, _q } = ctx.query;
@@ -91,6 +91,44 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
     }
   },
 
+  // Récupération de tous les devoirs sans pagination
+  async getAll(ctx) {
+    try {
+      console.log(ctx.state.user.id);
+
+      const filters = {
+        users_permissions_user: {
+          id: ctx.state.user.id,
+        },
+      };
+
+      const devoirs = await strapi.entityService.findMany(
+        "api::devoir.devoir",
+        {
+          filters,
+          populate: ["users_permissions_user"],
+        }
+      );
+
+      const data = devoirs.map((devoir) => {
+        return {
+          id: devoir.id,
+          titre: devoir.titre,
+        };
+      });
+      console.log(devoirs);
+      ctx.send({
+        data: data,
+      });
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération de tous les devoirs:",
+        error
+      );
+      ctx.throw(500, "Erreur lors de la récupération de tous les devoirs");
+    }
+  },
+
   // Récupération d'un devoir spécifique
   async findOne(ctx) {
     try {
@@ -98,7 +136,10 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
 
       const devoir = await strapi.entityService.findOne(
         "api::devoir.devoir",
-        id
+        id,
+        {
+          populate: ["attachments", "users_permissions_user"],
+        }
       );
 
       console.log(devoir);

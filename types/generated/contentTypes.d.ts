@@ -841,6 +841,21 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::group.group'
     >;
+    assignation: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToOne',
+      'api::assignation.assignation'
+    >;
+    assignations: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'manyToMany',
+      'api::assignation.assignation'
+    >;
+    quizzes: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::quiz.quiz'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -851,6 +866,83 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'plugin::users-permissions.user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAnswerAnswer extends Schema.CollectionType {
+  collectionName: 'answers';
+  info: {
+    singularName: 'answer';
+    pluralName: 'answers';
+    displayName: 'answer';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    answer: Attribute.String;
+    isCorrect: Attribute.Boolean & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::answer.answer',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::answer.answer',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAssignationAssignation extends Schema.CollectionType {
+  collectionName: 'assignations';
+  info: {
+    singularName: 'assignation';
+    pluralName: 'assignations';
+    displayName: 'Assignation';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    devoir: Attribute.Relation<
+      'api::assignation.assignation',
+      'oneToOne',
+      'api::devoir.devoir'
+    >;
+    etudiants: Attribute.Relation<
+      'api::assignation.assignation',
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+    professeur: Attribute.Relation<
+      'api::assignation.assignation',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    type: Attribute.Enumeration<['Groupe', 'Individuel']>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::assignation.assignation',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::assignation.assignation',
       'oneToOne',
       'admin::user'
     > &
@@ -928,6 +1020,11 @@ export interface ApiDevoirDevoir extends Schema.CollectionType {
       'api::devoir.devoir',
       'oneToOne',
       'plugin::users-permissions.user'
+    >;
+    assignation: Attribute.Relation<
+      'api::devoir.devoir',
+      'oneToOne',
+      'api::assignation.assignation'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -1044,7 +1141,7 @@ export interface ApiGroupGroup extends Schema.CollectionType {
   };
   attributes: {
     nom: Attribute.String;
-    members: Attribute.Relation<
+    membres: Attribute.Relation<
       'api::group.group',
       'oneToMany',
       'plugin::users-permissions.user'
@@ -1360,6 +1457,76 @@ export interface ApiProfilProfil extends Schema.CollectionType {
   };
 }
 
+export interface ApiQuestionQuestion extends Schema.CollectionType {
+  collectionName: 'questions';
+  info: {
+    singularName: 'question';
+    pluralName: 'questions';
+    displayName: 'question';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    description: Attribute.Text;
+    answers: Attribute.Relation<
+      'api::question.question',
+      'oneToMany',
+      'api::answer.answer'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::question.question',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::question.question',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiQuizQuiz extends Schema.CollectionType {
+  collectionName: 'quizzes';
+  info: {
+    singularName: 'quiz';
+    pluralName: 'quizzes';
+    displayName: 'quiz';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    titre: Attribute.String;
+    duration: Attribute.Integer;
+    questions: Attribute.Relation<
+      'api::quiz.quiz',
+      'oneToMany',
+      'api::question.question'
+    >;
+    author: Attribute.Relation<
+      'api::quiz.quiz',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::quiz.quiz', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<'api::quiz.quiz', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
 export interface ApiRelationRelation extends Schema.CollectionType {
   collectionName: 'relations';
   info: {
@@ -1482,6 +1649,8 @@ declare module '@strapi/types' {
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
+      'api::answer.answer': ApiAnswerAnswer;
+      'api::assignation.assignation': ApiAssignationAssignation;
       'api::conversation.conversation': ApiConversationConversation;
       'api::devoir.devoir': ApiDevoirDevoir;
       'api::education.education': ApiEducationEducation;
@@ -1493,6 +1662,8 @@ declare module '@strapi/types' {
       'api::notification.notification': ApiNotificationNotification;
       'api::parcour.parcour': ApiParcourParcour;
       'api::profil.profil': ApiProfilProfil;
+      'api::question.question': ApiQuestionQuestion;
+      'api::quiz.quiz': ApiQuizQuiz;
       'api::relation.relation': ApiRelationRelation;
       'api::resource.resource': ApiResourceResource;
     }
