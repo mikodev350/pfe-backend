@@ -20,6 +20,16 @@ module.exports = {
     },
     {
       method: "GET",
+      path: "/devoirs/all",
+      handler: "devoir.getAll", // Nouvelle route pour récupérer tous les devoirs sans pagination
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+
+    {
+      method: "GET",
       path: "/devoirs/:id",
       handler: "devoir.findOne",
       config: {

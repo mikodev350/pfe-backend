@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "groups",
+  "collectionName": "quizzes",
   "info": {
-    "singularName": "group",
-    "pluralName": "groups",
-    "displayName": "group",
+    "singularName": "quiz",
+    "pluralName": "quizzes",
+    "displayName": "quiz",
     "description": ""
   },
   "options": {
@@ -12,19 +12,22 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "nom": {
+    "titre": {
       "type": "string"
     },
-    "membres": {
+    "duration": {
+      "type": "integer"
+    },
+    "questions": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "plugin::users-permissions.user"
+      "target": "api::question.question"
     },
-    "professeur": {
+    "author": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
-      "inversedBy": "group"
+      "inversedBy": "quizzes"
     }
   }
 }
