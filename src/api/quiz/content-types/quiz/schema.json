@@ -28,6 +28,12 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "quizzes"
+    },
+    "assignation": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::assignation.assignation",
+      "inversedBy": "quiz"
     }
   }
 }

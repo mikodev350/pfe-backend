@@ -841,20 +841,15 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::group.group'
     >;
-    assignation: Attribute.Relation<
-      'plugin::users-permissions.user',
-      'oneToOne',
-      'api::assignation.assignation'
-    >;
-    assignations: Attribute.Relation<
-      'plugin::users-permissions.user',
-      'manyToMany',
-      'api::assignation.assignation'
-    >;
     quizzes: Attribute.Relation<
       'plugin::users-permissions.user',
       'oneToMany',
       'api::quiz.quiz'
+    >;
+    assignations: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::assignation.assignation'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -904,6 +899,46 @@ export interface ApiAnswerAnswer extends Schema.CollectionType {
   };
 }
 
+export interface ApiAnswerHistoryAnswerHistory extends Schema.CollectionType {
+  collectionName: 'answer_histories';
+  info: {
+    singularName: 'answer-history';
+    pluralName: 'answer-histories';
+    displayName: 'answerHistory';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    answer: Attribute.Relation<
+      'api::answer-history.answer-history',
+      'oneToOne',
+      'api::answer.answer'
+    >;
+    student: Attribute.Relation<
+      'api::answer-history.answer-history',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    attachement: Attribute.Media;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::answer-history.answer-history',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::answer-history.answer-history',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiAssignationAssignation extends Schema.CollectionType {
   collectionName: 'assignations';
   info: {
@@ -921,9 +956,9 @@ export interface ApiAssignationAssignation extends Schema.CollectionType {
       'oneToOne',
       'api::devoir.devoir'
     >;
-    etudiants: Attribute.Relation<
+    etudiant: Attribute.Relation<
       'api::assignation.assignation',
-      'manyToMany',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     professeur: Attribute.Relation<
@@ -931,7 +966,21 @@ export interface ApiAssignationAssignation extends Schema.CollectionType {
       'oneToOne',
       'plugin::users-permissions.user'
     >;
-    type: Attribute.Enumeration<['Groupe', 'Individuel']>;
+    quiz: Attribute.Relation<
+      'api::assignation.assignation',
+      'oneToOne',
+      'api::quiz.quiz'
+    >;
+    resultat: Attribute.Relation<
+      'api::assignation.assignation',
+      'oneToOne',
+      'api::resultat.resultat'
+    >;
+    group: Attribute.Relation<
+      'api::assignation.assignation',
+      'oneToOne',
+      'api::group.group'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1020,11 +1069,6 @@ export interface ApiDevoirDevoir extends Schema.CollectionType {
       'api::devoir.devoir',
       'oneToOne',
       'plugin::users-permissions.user'
-    >;
-    assignation: Attribute.Relation<
-      'api::devoir.devoir',
-      'oneToOne',
-      'api::assignation.assignation'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -1517,6 +1561,11 @@ export interface ApiQuizQuiz extends Schema.CollectionType {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    assignation: Attribute.Relation<
+      'api::quiz.quiz',
+      'oneToOne',
+      'api::assignation.assignation'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1631,6 +1680,41 @@ export interface ApiResourceResource extends Schema.CollectionType {
   };
 }
 
+export interface ApiResultatResultat extends Schema.CollectionType {
+  collectionName: 'resultats';
+  info: {
+    singularName: 'resultat';
+    pluralName: 'resultats';
+    displayName: 'resultat';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    assignation: Attribute.Relation<
+      'api::resultat.resultat',
+      'oneToOne',
+      'api::assignation.assignation'
+    >;
+    score: Attribute.Integer;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::resultat.resultat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::resultat.resultat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -1650,6 +1734,7 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'api::answer.answer': ApiAnswerAnswer;
+      'api::answer-history.answer-history': ApiAnswerHistoryAnswerHistory;
       'api::assignation.assignation': ApiAssignationAssignation;
       'api::conversation.conversation': ApiConversationConversation;
       'api::devoir.devoir': ApiDevoirDevoir;
@@ -1666,6 +1751,7 @@ declare module '@strapi/types' {
       'api::quiz.quiz': ApiQuizQuiz;
       'api::relation.relation': ApiRelationRelation;
       'api::resource.resource': ApiResourceResource;
+      'api::resultat.resultat': ApiResultatResultat;
     }
   }
 }

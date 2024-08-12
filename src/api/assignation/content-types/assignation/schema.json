@@ -15,27 +15,35 @@
     "devoir": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::devoir.devoir",
-      "inversedBy": "assignation"
+      "target": "api::devoir.devoir"
     },
-    "etudiants": {
+    "etudiant": {
       "type": "relation",
-      "relation": "manyToMany",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "assignations"
     },
     "professeur": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "assignation"
+      "target": "plugin::users-permissions.user"
     },
-    "type": {
-      "type": "enumeration",
-      "enum": [
-        "Groupe",
-        "Individuel"
-      ]
+    "quiz": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::quiz.quiz",
+      "mappedBy": "assignation"
+    },
+    "resultat": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::resultat.resultat",
+      "mappedBy": "assignation"
+    },
+    "group": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::group.group"
     }
   }
 }

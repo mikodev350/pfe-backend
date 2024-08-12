@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "answer_histories",
+  "info": {
+    "singularName": "answer-history",
+    "pluralName": "answer-histories",
+    "displayName": "answerHistory"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "answer": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::answer.answer"
+    },
+    "student": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "attachement": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": true
+    }
+  }
+}

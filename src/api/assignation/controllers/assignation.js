@@ -12,31 +12,54 @@ module.exports = createCoreController(
     // Create a new assignation
     async create(ctx) {
       try {
-        const { devoir, etudiants, type } = ctx.request.body;
+        const { entityId, userIds, type, assignments, TypeOfasssignation } =
+          ctx.request.body;
         const professeur = ctx.state.user.id;
-        console.log("====================================");
-        console.log(ctx.request.body);
-        console.log("====================================");
-        const createData = {
-          devoir,
-          etudiants,
-          professeur,
-          type,
-          createdAt: new Date(),
-        };
 
-        // const newAssignation = await strapi.entityService.create(
-        //   "api::assignation.assignation",
-        //   { data: createData }
-        // );
+        if (type === "GROUP") {
+          // Boucle sur chaque étudiant
+          for (const etudiant of userIds) {
+            // Boucle sur chaque assignment si c'est un tableau
+            for (const assignment of assignments) {
+              const createData = {
+                etudiant: etudiant,
+                professeur: professeur,
+                devoir: TypeOfasssignation === "DEVOIR" ? assignment : null,
+                group: entityId,
+                createdAt: new Date(),
+              };
 
+              // Créer l'assignation pour l'étudiant et l'assignation courants
+              await strapi.entityService.create(
+                "api::assignation.assignation",
+                {
+                  data: createData,
+                }
+              );
+            }
+          }
+        } else if (type === "INDIVIDUEL") {
+          for (const assignment of assignments) {
+            const createData = {
+              etudiant: userIds[0],
+              professeur: professeur,
+              devoir: TypeOfasssignation === "DEVOIR" ? assignment : null,
+              group: entityId,
+              createdAt: new Date(),
+            };
+
+            // Créer l'assignation pour l'étudiant et l'assignation courants
+            await strapi.entityService.create("api::assignation.assignation", {
+              data: createData,
+            });
+          }
+        }
         ctx.send({
-          message: "Assignation créée avec succès",
-          //   data: newAssignation,
+          message: "Assignations créées avec succès",
         });
       } catch (error) {
-        console.error("Erreur lors de la création de l'assignation:", error);
-        ctx.throw(500, "Erreur lors de la création de l'assignation");
+        console.error("Erreur lors de la création des assignations:", error);
+        ctx.throw(500, "Erreur lors de la création des assignations");
       }
     },
 
