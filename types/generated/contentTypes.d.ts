@@ -1469,7 +1469,7 @@ export interface ApiQuestionQuestion extends Schema.CollectionType {
     draftAndPublish: true;
   };
   attributes: {
-    description: Attribute.Text;
+    question: Attribute.Text;
     answers: Attribute.Relation<
       'api::question.question',
       'oneToMany',
