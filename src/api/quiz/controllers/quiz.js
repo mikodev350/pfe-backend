@@ -50,7 +50,7 @@ module.exports = ({ strapi }) => ({
     return newQuiz;
   },
   async findOne(ctx) {
-    return await strapi.db.query("api::quiz.quiz").findOne({
+    const result = await strapi.db.query("api::quiz.quiz").findOne({
       where: {
         author: ctx.state.user,
         id: ctx.request.params.id,
@@ -62,6 +62,22 @@ module.exports = ({ strapi }) => ({
           },
         },
       },
+    });
+
+    return result;
+  },
+  async find(ctx) {
+    const result = await strapi.db.query("api::quiz.quiz").findMany({
+      where: {
+        author: ctx.state.user,
+      },
+      populate: {
+        questions: true,
+      },
+    });
+    return result.map((item) => {
+      item.questions = item.questions.length;
+      return item;
     });
   },
 });
