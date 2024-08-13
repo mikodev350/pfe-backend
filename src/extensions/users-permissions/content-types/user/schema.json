@@ -160,12 +160,6 @@
       "target": "api::devoir.devoir",
       "mappedBy": "teacher"
     },
-    "group": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::group.group",
-      "mappedBy": "professeur"
-    },
     "quizzes": {
       "type": "relation",
       "relation": "oneToMany",

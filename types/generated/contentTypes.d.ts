@@ -836,11 +836,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::devoir.devoir'
     >;
-    group: Attribute.Relation<
-      'plugin::users-permissions.user',
-      'oneToOne',
-      'api::group.group'
-    >;
     quizzes: Attribute.Relation<
       'plugin::users-permissions.user',
       'oneToMany',
