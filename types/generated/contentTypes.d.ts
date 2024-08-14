@@ -917,6 +917,11 @@ export interface ApiAnswerHistoryAnswerHistory extends Schema.CollectionType {
       'plugin::users-permissions.user'
     >;
     attachement: Attribute.Media;
+    question: Attribute.Relation<
+      'api::answer-history.answer-history',
+      'oneToOne',
+      'api::question.question'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
