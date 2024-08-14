@@ -23,8 +23,7 @@
     "professeur": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "group"
+      "target": "plugin::users-permissions.user"
     }
   }
 }

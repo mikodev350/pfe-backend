@@ -36,7 +36,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
         "api::devoir.devoir",
         newDevoir.id,
         {
-          populate: ["attachments", "users_permissions_user"],
+          populate: ["teacher"],
         }
       );
 
@@ -136,13 +136,11 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
 
       const devoir = await strapi.entityService.findOne(
         "api::devoir.devoir",
-        id,
-        {
-          populate: ["attachments", "users_permissions_user"],
-        }
+        id
       );
-
+      console.log("====================================");
       console.log(devoir);
+      console.log("====================================");
 
       if (!devoir) {
         return ctx.throw(404, "Devoir non trouvé");

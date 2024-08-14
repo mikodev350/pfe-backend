@@ -836,11 +836,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'oneToOne',
       'api::devoir.devoir'
     >;
-    group: Attribute.Relation<
-      'plugin::users-permissions.user',
-      'oneToOne',
-      'api::group.group'
-    >;
     quizzes: Attribute.Relation<
       'plugin::users-permissions.user',
       'oneToMany',
@@ -905,6 +900,7 @@ export interface ApiAnswerHistoryAnswerHistory extends Schema.CollectionType {
     singularName: 'answer-history';
     pluralName: 'answer-histories';
     displayName: 'answerHistory';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -971,16 +967,17 @@ export interface ApiAssignationAssignation extends Schema.CollectionType {
       'oneToOne',
       'api::quiz.quiz'
     >;
-    resultat: Attribute.Relation<
-      'api::assignation.assignation',
-      'oneToOne',
-      'api::resultat.resultat'
-    >;
     group: Attribute.Relation<
       'api::assignation.assignation',
       'oneToOne',
       'api::group.group'
     >;
+    answer_histories: Attribute.Relation<
+      'api::assignation.assignation',
+      'oneToMany',
+      'api::answer-history.answer-history'
+    >;
+    score: Attribute.Integer;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1691,11 +1688,6 @@ export interface ApiResultatResultat extends Schema.CollectionType {
     draftAndPublish: true;
   };
   attributes: {
-    assignation: Attribute.Relation<
-      'api::resultat.resultat',
-      'oneToOne',
-      'api::assignation.assignation'
-    >;
     score: Attribute.Integer;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;

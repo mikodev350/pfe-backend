@@ -6,6 +6,15 @@
 
 const { createCoreController } = require("@strapi/strapi").factories;
 
+const formatDate = (date) => {
+  const options = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+
+  return new Date(date).toLocaleDateString("fr-FR", options);
+};
 module.exports = createCoreController(
   "api::assignation.assignation",
   ({ strapi }) => ({
@@ -62,17 +71,135 @@ module.exports = createCoreController(
         ctx.throw(500, "Erreur lors de la création des assignations");
       }
     },
+    // Méthode personnalisée pour récupérer les assignations d'un étudiant
+    async findForStudent(ctx) {
+      console.log("====================================");
+      console.log("fsdfsdfsdfsdfsdfsdf");
+      console.log("====================================");
+      // try {
+      //   const studentId = ctx.state.user.id;
+      //   console.log("Student ID:", studentId);
 
-    // Get all assignations
+      //   // Essayez de récupérer toutes les assignations sans filtre pour voir si cela fonctionne
+      //   const assignations = await strapi.entityService.findMany(
+      //     "api::assignation.assignation",
+      //     {
+      //       populate: ["devoir", "quiz", "professeur", "group"],
+      //     }
+      //   );
+
+      //   console.log("Assignations:", assignations);
+
+      //   if (!assignations || assignations.length === 0) {
+      //     return ctx.throw(404, "Aucune assignation trouvée.");
+      //   }
+
+      //   // Transformation des données pour l'étudiant
+      //   const transformedData = assignations.map((assignation) => {
+      //     let titre = "Titre non disponible";
+      //     if (assignation.devoir && assignation.devoir.titre) {
+      //       titre = assignation.devoir.titre;
+      //     } else if (assignation.quiz && assignation.quiz.titre) {
+      //       titre = assignation.quiz.titre;
+      //     }
+
+      //     return {
+      //       id: assignation.id,
+      //       titre: titre,
+      //       date: formatDate(assignation.createdAt),
+      //       type: assignation.devoir ? "DEVOIR" : "QUIZ",
+      //     };
+      //   });
+
+      //   // Envoi des données transformées
+      //   ctx.send(transformedData);
+      // } catch (error) {
+      //   console.error(
+      //     "Erreur lors de la récupération des assignations pour l'étudiant:",
+      //     error
+      //   );
+      //   ctx.throw(500, "Erreur lors de la récupération des assignations");
+      // }
+    },
     async find(ctx) {
       try {
+        const { type, group, TypeElement } = ctx.query;
+        const professeur = ctx.state.user.id;
+
+        let filters = {
+          professeur: professeur,
+        };
+
+        // Filtrer en fonction du groupe ou de l'étudiant
+        if (group) {
+          filters.group = group;
+        } else {
+          filters.etudiant = { $notNull: true };
+        }
+
+        // Filtrer en fonction du type (DEVOIR ou QUIZ)
+        if (type === "DEVOIR") {
+          filters.devoir = { $notNull: true };
+        } else if (type === "QUIZ") {
+          filters.quiz = { $notNull: true };
+        }
+
+        // Récupérer les assignations avec les filtres appliqués
         const assignations = await strapi.entityService.findMany(
           "api::assignation.assignation",
           {
-            populate: ["devoir", "etudiant", "professeur"],
+            populate: ["devoir", "quiz", "etudiant", "professeur", "group"],
+            filters: filters,
           }
         );
-        ctx.send(assignations);
+
+        // Filtrer les assignations pour supprimer les répétitions si TypeElement est "GROUP"
+        let transformedData;
+        if (TypeElement === "GROUP") {
+          // Utiliser un Map pour stocker les assignations uniques par groupe
+          const uniqueAssignmentsMap = new Map();
+
+          assignations.forEach((assignation) => {
+            let titre = "Titre non disponible";
+            if (type === "DEVOIR" && assignation.devoir) {
+              titre = assignation.devoir.titre;
+            } else if (type === "QUIZ" && assignation.quiz) {
+              titre = assignation.quiz.titre;
+            }
+
+            // Vérifier si l'assignation est déjà présente pour le groupe
+            const key = `${assignation.group?.id}-${titre}`;
+            if (!uniqueAssignmentsMap.has(key)) {
+              uniqueAssignmentsMap.set(key, {
+                id: assignation.id,
+                titre: titre,
+                date: formatDate(assignation.createdAt),
+              });
+            }
+          });
+
+          // Convertir le Map en tableau pour l'envoyer dans la réponse
+          transformedData = Array.from(uniqueAssignmentsMap.values());
+        } else {
+          // Si c'est un type individuel, simplement transformer les données sans filtrer les répétitions
+          transformedData = assignations.map((assignation) => {
+            let titre = "Titre non disponible";
+            if (type === "DEVOIR" && assignation.devoir) {
+              titre = assignation.devoir.titre;
+            } else if (type === "QUIZ" && assignation.quiz) {
+              titre = assignation.quiz.titre;
+            }
+
+            return {
+              id: assignation.id,
+              titre: titre,
+              date: formatDate(assignation.createdAt),
+            };
+          });
+        }
+
+        // Envoyer les données transformées
+        ctx.send(transformedData);
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des assignations:",
@@ -81,7 +208,6 @@ module.exports = createCoreController(
         ctx.throw(500, "Erreur lors de la récupération des assignations");
       }
     },
-
     // Get a single assignation by ID
     async findOne(ctx) {
       try {
@@ -138,26 +264,56 @@ module.exports = createCoreController(
       }
     },
 
-    // Delete an assignation by ID
     async delete(ctx) {
       try {
-        const { id } = ctx.params;
+        const { id } = ctx.params; // L'id du devoir ou du quiz
+        const { groupId, TypeElement, type } = ctx.query; // L'id du groupe ou de l'individu, le TypeElement (GROUP/INDIVIDUEL), et le type (DEVOIR/QUIZ)
+        const professeur = ctx.state.user.id;
 
-        const existingAssignation = await strapi.entityService.findOne(
-          "api::assignation.assignation",
-          id
-        );
+        // Construire les filtres pour la suppression
+        let filters = {
+          professeur: professeur,
+        };
 
-        if (!existingAssignation) {
-          return ctx.throw(404, "Assignation non trouvée");
+        // Filtrer en fonction du groupe ou de l'étudiant
+        if (TypeElement === "GROUP") {
+          filters.group = groupId;
+        } else if (TypeElement === "INDIVIDUEL") {
+          filters.etudiant = groupId; // groupId est utilisé ici pour l'id de l'étudiant dans le cas INDIVIDUEL
         }
 
-        await strapi.entityService.delete("api::assignation.assignation", id);
+        // Filtrer en fonction du type (DEVOIR ou QUIZ) et de l'id spécifique
+        if (type === "DEVOIR") {
+          filters.devoir = id;
+        } else if (type === "QUIZ") {
+          filters.quiz = id;
+        }
 
-        ctx.send({ message: "Assignation supprimée avec succès" });
+        // Rechercher les assignations à supprimer en utilisant les filtres construits
+        const assignationsToDelete = await strapi.entityService.findMany(
+          "api::assignation.assignation",
+          {
+            filters: filters,
+          }
+        );
+
+        // Si on trouve des assignations, on les supprime
+        if (assignationsToDelete.length > 0) {
+          for (const assignation of assignationsToDelete) {
+            await strapi.entityService.delete(
+              "api::assignation.assignation",
+              assignation.id
+            );
+          }
+          ctx.send({
+            message: `${assignationsToDelete.length} assignations supprimées avec succès`,
+          });
+        } else {
+          ctx.send({ message: "Aucune assignation trouvée à supprimer" });
+        }
       } catch (error) {
-        console.error("Erreur lors de la suppression de l'assignation:", error);
-        ctx.throw(500, "Erreur lors de la suppression de l'assignation");
+        console.error("Erreur lors de la suppression des assignations:", error);
+        ctx.throw(500, "Erreur lors de la suppression des assignations");
       }
     },
   })

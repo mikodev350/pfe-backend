@@ -34,16 +34,18 @@
       "target": "api::quiz.quiz",
       "mappedBy": "assignation"
     },
-    "resultat": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::resultat.resultat",
-      "mappedBy": "assignation"
-    },
     "group": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::group.group"
+    },
+    "answer_histories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::answer-history.answer-history"
+    },
+    "score": {
+      "type": "integer"
     }
   }
 }

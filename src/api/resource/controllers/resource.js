@@ -34,8 +34,14 @@ module.exports = createCoreController(
         }
 
         // Prepare images array
-        const imageIds = images ? images.map((image) => image.id) : [];
-
+        const imageIds = images
+          ? images.map((image) => {
+              id: image.id;
+            })
+          : [];
+        console.log("====================================");
+        console.log(imageIds);
+        console.log("====================================");
         // Verify and associate the uploaded files
         const createData = {
           nom: nom,

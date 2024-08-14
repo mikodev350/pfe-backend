@@ -4,7 +4,8 @@
   "info": {
     "singularName": "answer-history",
     "pluralName": "answer-histories",
-    "displayName": "answerHistory"
+    "displayName": "answerHistory",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -22,11 +23,12 @@
       "target": "plugin::users-permissions.user"
     },
     "attachement": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
       "allowedTypes": [
         "images"
-      ],
-      "type": "media",
-      "multiple": true
+      ]
     }
   }
 }

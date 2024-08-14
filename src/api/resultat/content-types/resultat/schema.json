@@ -11,12 +11,6 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "assignation": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::assignation.assignation",
-      "inversedBy": "resultat"
-    },
     "score": {
       "type": "integer"
     }
