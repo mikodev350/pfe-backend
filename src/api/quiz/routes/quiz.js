@@ -18,6 +18,11 @@ module.exports = {
     },
     {
       method: "GET",
+      path: "/take-quiz/:id",
+      handler: "quiz.findTest",
+    },
+    {
+      method: "GET",
       path: "/my-quizzes",
       handler: "quiz.find",
     },
