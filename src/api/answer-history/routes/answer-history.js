@@ -1,9 +1,10 @@
-'use strict';
-
-/**
- * answer-history router
- */
-
-const { createCoreRouter } = require('@strapi/strapi').factories;
-
-module.exports = createCoreRouter('api::answer-history.answer-history');
+module.exports = {
+  routes: [
+    {
+      method: "POST",
+      path: "/answer-histories",
+      handler: "answer-history.create",
+      config: {},
+    },
+  ],
+};

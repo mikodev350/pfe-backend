@@ -71,6 +71,56 @@ module.exports = createCoreController(
         ctx.throw(500, "Erreur lors de la création des assignations");
       }
     },
+    // Méthode personnalisée pour récupérer les assignations d'un étudiant
+    async findForStudent(ctx) {
+      console.log("====================================");
+      console.log("fsdfsdfsdfsdfsdfsdf");
+      console.log("====================================");
+      // try {
+      //   const studentId = ctx.state.user.id;
+      //   console.log("Student ID:", studentId);
+
+      //   // Essayez de récupérer toutes les assignations sans filtre pour voir si cela fonctionne
+      //   const assignations = await strapi.entityService.findMany(
+      //     "api::assignation.assignation",
+      //     {
+      //       populate: ["devoir", "quiz", "professeur", "group"],
+      //     }
+      //   );
+
+      //   console.log("Assignations:", assignations);
+
+      //   if (!assignations || assignations.length === 0) {
+      //     return ctx.throw(404, "Aucune assignation trouvée.");
+      //   }
+
+      //   // Transformation des données pour l'étudiant
+      //   const transformedData = assignations.map((assignation) => {
+      //     let titre = "Titre non disponible";
+      //     if (assignation.devoir && assignation.devoir.titre) {
+      //       titre = assignation.devoir.titre;
+      //     } else if (assignation.quiz && assignation.quiz.titre) {
+      //       titre = assignation.quiz.titre;
+      //     }
+
+      //     return {
+      //       id: assignation.id,
+      //       titre: titre,
+      //       date: formatDate(assignation.createdAt),
+      //       type: assignation.devoir ? "DEVOIR" : "QUIZ",
+      //     };
+      //   });
+
+      //   // Envoi des données transformées
+      //   ctx.send(transformedData);
+      // } catch (error) {
+      //   console.error(
+      //     "Erreur lors de la récupération des assignations pour l'étudiant:",
+      //     error
+      //   );
+      //   ctx.throw(500, "Erreur lors de la récupération des assignations");
+      // }
+    },
     async find(ctx) {
       try {
         const { type, group, TypeElement } = ctx.query;
