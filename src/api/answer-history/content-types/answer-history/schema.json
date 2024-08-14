@@ -34,6 +34,12 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::question.question"
+    },
+    "assignation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::assignation.assignation",
+      "inversedBy": "answer_histories"
     }
   }
 }

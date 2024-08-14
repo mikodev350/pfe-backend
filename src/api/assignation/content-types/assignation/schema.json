@@ -42,7 +42,8 @@
     "answer_histories": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::answer-history.answer-history"
+      "target": "api::answer-history.answer-history",
+      "mappedBy": "assignation"
     },
     "score": {
       "type": "integer"

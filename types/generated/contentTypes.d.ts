@@ -922,6 +922,11 @@ export interface ApiAnswerHistoryAnswerHistory extends Schema.CollectionType {
       'oneToOne',
       'api::question.question'
     >;
+    assignation: Attribute.Relation<
+      'api::answer-history.answer-history',
+      'manyToOne',
+      'api::assignation.assignation'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
