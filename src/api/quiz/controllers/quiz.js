@@ -70,25 +70,37 @@ module.exports = ({ strapi }) => ({
     //! need to check if he has the ability to take the test
     //! may we need to test assignation to find the test
     //! We will use this code until the all tasts will be finished
-    const result = await strapi.db.query("api::quiz.quiz").findOne({
-      where: {
-        id: ctx.request.params.id,
-      },
-      populate: {
-        questions: {
-          populate: {
-            answers: {
-              select: ["answer", "id"],
+    const result = await strapi.db
+      .query("api::assignation.assignation")
+      .findOne({
+        where: {
+          id: ctx.request.params.id,
+        },
+        populate: {
+          quiz: {
+            populate: {
+              questions: {
+                populate: {
+                  answers: {
+                    select: ["answer", "id"],
+                  },
+                },
+              },
             },
           },
         },
-      },
-    });
+      });
+    console.log(result);
 
+    if (result.score !== null) {
+      return "SESSION ENDED";
+    }
     //! This code need to be optimazed but as i dont have a time, we use it as it wokrs
 
-    let randomQuiz = result;
-    randomQuiz.questions = result.questions
+    let randomQuiz = result.quiz;
+    console.log(randomQuiz);
+
+    randomQuiz.questions = result.quiz.questions
       .map((question) => {
         question.answers = question.answers.sort(() => Math.random() - 0.5);
         return question;
