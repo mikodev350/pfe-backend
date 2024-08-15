@@ -11,5 +11,15 @@ module.exports = {
         middlewares: [],
       },
     },
+    // this for attribute nooteee
+    {
+      method: "POST",
+      path: "/assignations-custom/note",
+      handler: "assignationforstudent.assignNote",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

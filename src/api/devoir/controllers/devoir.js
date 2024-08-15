@@ -138,9 +138,6 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
         "api::devoir.devoir",
         id
       );
-      console.log("====================================");
-      console.log(devoir);
-      console.log("====================================");
 
       if (!devoir) {
         return ctx.throw(404, "Devoir non trouvé");

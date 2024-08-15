@@ -11,16 +11,15 @@ module.exports = createCoreController(
   ({ strapi }) => ({
     async putDevoir(ctx) {
       try {
+        const { devoirId } = ctx.query;
         const { answer, attachement } = ctx.request.body;
-
-        // attachement
-        // etudiant  assignation
-
-        score;
-        // Obtenir l'ID de l'étudiant depuis l'utilisateur authentifié
+        console.log("====================================");
+        console.log(ctx.request.body);
+        console.log("====================================");
+        // Get the student ID from the authenticated user
         const studentId = ctx.state.user.id;
 
-        // Vérification des attachements reçus
+        // Ensure attachments are provided and valid
         if (!Array.isArray(attachement) || attachement.length === 0) {
           return ctx.throw(
             400,
@@ -28,9 +27,7 @@ module.exports = createCoreController(
           );
         }
 
-        console.log(attachement);
-
-        // Validation des IDs d'attachement
+        // Validate attachment IDs
         const validAttachments = await Promise.all(
           attachement.map(async (attachId) => {
             try {
@@ -39,7 +36,7 @@ module.exports = createCoreController(
                 attachId
               );
               if (file) {
-                return attachId; // ID valide
+                return attachId;
               } else {
                 console.warn(`Invalid attachment ID: ${attachId}`);
                 return null;
@@ -51,59 +48,206 @@ module.exports = createCoreController(
           })
         );
 
-        // Filtrer les attachements valides
+        // Filter valid attachments
         const filteredAttachments = validAttachments.filter(
           (id) => id !== null
         );
 
-        console.log("====================================");
-        console.log(filteredAttachments);
-        console.log("====================================");
-        // Vérification finale
         if (filteredAttachments.length === 0) {
           return ctx.throw(400, "No valid attachment IDs provided.");
         }
 
-        // Préparer les données pour la création
-        const createData = {
-          answer,
-          student: studentId,
-          attachement: filteredAttachments,
-          createdAt: new Date(),
-        };
-        console.log("createData");
-
-        console.log(createData);
-
-        // Créer l'entrée `AnswerHistory`
-        const newAnswerHistory = await strapi.db
+        // Vérifier si l'étudiant est assigné à ce devoir
+        const assignation = await strapi.db
+          .query("api::assignation.assignation")
+          .findOne({
+            where: {
+              etudiant: studentId,
+              devoir: { id: Number(devoirId) },
+            },
+          });
+        // Check if an `AnswerHistory` already exists for this student and assignation
+        let answerHistory = await strapi.db
           .query("api::answer-history.answer-history")
-          .create({
-            data: createData,
+          .findOne({
+            where: {
+              student: studentId,
+              assignation: assignation.id,
+            },
+          });
+
+        if (answerHistory) {
+          // Update the existing `AnswerHistory`
+          answerHistory = await strapi.db
+            .query("api::answer-history.answer-history")
+            .update({
+              where: { id: answerHistory.id },
+              data: {
+                answer,
+                attachement: filteredAttachments,
+                updatedAt: new Date(),
+              },
+            });
+
+          ctx.send({
+            message: "AnswerHistory updated successfully",
+            data: answerHistory,
+          });
+        } else {
+          // Create a new `AnswerHistory`
+          const createData = {
+            answer,
+            student: studentId,
+            assignation: assignation.id, // Link to the assignation
+            attachement: filteredAttachments,
+            createdAt: new Date(),
+          };
+
+          const newAnswerHistory = await strapi.db
+            .query("api::answer-history.answer-history")
+            .create({
+              data: createData,
+            });
+
+          // Fetch the newly created entry with relations populated
+          const answerHistoryWithRelations = await strapi.entityService.findOne(
+            "api::answer-history.answer-history",
+            newAnswerHistory.id,
+            {
+              populate: ["attachment", "student", "assignation"],
+            }
+          );
+
+          ctx.send({
+            message: "AnswerHistory created successfully",
+            data: answerHistoryWithRelations,
+          });
+        }
+      } catch (error) {
+        console.error("Error processing AnswerHistory:", error);
+        ctx.throw(500, "Error processing AnswerHistory");
+      }
+    },
+    async checkDevoir(ctx) {
+      try {
+        const { devoirId } = ctx.query;
+        const studentId = ctx.state.user.id;
+
+        // Vérifier si l'étudiant est assigné à ce devoir
+        const assignation = await strapi.db
+          .query("api::assignation.assignation")
+          .findOne({
+            where: {
+              etudiant: studentId,
+              devoir: { id: Number(devoirId) },
+            },
           });
 
         console.log("====================================");
-        console.log("newAnswerHistory");
-
-        console.log(newAnswerHistory);
+        console.log("this is assignation pro maxx");
+        console.log(assignation);
         console.log("====================================");
-        // Récupérer l'entrée nouvellement créée avec relations peuplées
-        const answerHistoryWithRelations = await strapi.entityService.findOne(
-          "api::answer-history.answer-history",
-          newAnswerHistory.id,
-          {
-            populate: ["attachment", "student"],
-          }
+        if (!assignation) {
+          return ctx.send({
+            update: false,
+            message: "Student is not assigned to this devoir",
+          });
+        }
+
+        console.log("====================================");
+        console.log("this is assgnation ");
+        console.log(assignation.score);
+
+        console.log("====================================");
+        if (assignation.score) {
+          // Mettre à jour le devoir ou effectuer d'autres opérations si nécessaire
+          return ctx.send({
+            update: true,
+            message: "Score exists for this student and devoir",
+          });
+        } else {
+          // Retourner false si le score n'existe pas
+          return ctx.send({
+            update: false,
+            message: "No score found for this student and devoir",
+          });
+        }
+      } catch (error) {
+        console.error("Error checking devoir:", error);
+        ctx.throw(500, "Internal server error");
+      }
+    },
+
+    /*****************************************************************************/
+    async findFilteredDevoir(ctx) {
+      console.log(ctx.query);
+
+      const { group, etudiant, devoir } = ctx.query;
+      const professeur = ctx.state.user.id;
+
+      try {
+        // Création de conditions de filtrage
+        const assignationFilters = {
+          ...(group && { group: { id: Number(group) } }),
+          ...(professeur && { professeur: { id: Number(professeur) } }),
+          ...(etudiant && { etudiant: { id: Number(etudiant) } }),
+          ...(devoir && { devoir: { id: Number(devoir) } }),
+        };
+
+        // Requête pour obtenir les assignations filtrées
+        const assignations = await strapi.db
+          .query("api::assignation.assignation")
+          .findMany({
+            where: assignationFilters,
+            populate: [
+              "etudiant",
+              "attachement",
+              "professeur",
+              "devoir",
+              "answer_histories",
+            ],
+          });
+
+        // Filtrer les assignations qui ont des answer_histories
+        const filteredAssignations = assignations.filter(
+          (assignation) => assignation.answer_histories.length > 0
         );
 
-        // Envoyer la réponse
-        ctx.send({
-          message: "AnswerHistory created successfully",
-          data: answerHistoryWithRelations,
-        });
+        // Structure de réponse avec les informations de l'étudiant et des answer_histories
+        const response = [];
+
+        for (const assignation of filteredAssignations) {
+          const assignationDetails = {
+            assignationId: assignation.id,
+            etudiant: assignation.etudiant.username, // Nom de l'étudiant
+            devoir: assignation.devoir.titre, // Titre du devoir
+            note: assignation.score,
+            answer_histories: [],
+          };
+
+          // Parcourir chaque answer_history associé à l'assignation
+          for (const history of assignation.answer_histories) {
+            // Récupérer les informations de chaque answer_history
+            const populatedHistory = await strapi.db
+              .query("api::answer-history.answer-history")
+              .findOne({
+                where: { id: history.id },
+                populate: ["attachement"], // Assurez-vous que les attachements sont bien peuplés
+              });
+
+            assignationDetails.answer_histories.push({
+              answer: populatedHistory.answer, // Réponse
+              attachements: populatedHistory.attachement, // Attachements (images)
+            });
+          }
+
+          response.push(assignationDetails);
+        }
+
+        ctx.send(response);
       } catch (error) {
-        console.error("Error creating AnswerHistory:", error);
-        ctx.throw(500, "Error creating AnswerHistory");
+        console.error("Error fetching filtered AnswerHistory:", error);
+        ctx.throw(500, "Internal server error");
       }
     },
   })

@@ -20,6 +20,20 @@ module.exports = createCoreController("api::group.group", ({ strapi }) => ({
         },
       });
 
+      /***********************************************************************/
+      // create conversation grouuppee
+
+      const newConversation = await strapi.db
+        .query("api::conversation.conversation")
+        .create({
+          data: {
+            titre: nom,
+            participants: [...members, professeur],
+            type: "GROUP",
+            admin: professeur,
+          },
+        });
+
       return ctx.send({ group });
     } catch (error) {
       ctx.throw(500, "Internal Server Error");
