@@ -90,34 +90,41 @@ module.exports = {
           });
 
           socket.on(
-            "update-quiz",
+            "set-answer-quiz",
             async ({ assignationId, answerId, questionId }) => {
+              console.log(user);
+
               const assignation = await strapi.db
                 .query("api::assignation.assignation")
                 .findOne({
                   where: {
                     id: assignationId,
-                    etudent: currentUser,
+                    etudiant: user,
                   },
-                  select: ["id"],
+                  select: ["id", "score"],
                 });
-              if (assignation && !assignation.score) {
+
+              if (assignation && assignation.score === null) {
                 const answer = await strapi.db
-                  .query("api::conversation.conversation")
+                  .query("api::answer-history.answer-history")
                   .findOne({
                     where: {
                       question: questionId,
-                      assignation: assignationId,
+                      student: user,
+                      //assignation: assignationId,
                     },
                     select: ["id"],
                   });
+                console.log(answer);
+
                 if (answer) {
                   await strapi.db
                     .query("api::answer-history.answer-history")
                     .update({
                       where: {
                         question: questionId,
-                        assignation: assignationId,
+                        student: user,
+                        // assignation: assignationId,
                       },
                       data: {
                         answer: answerId,
@@ -129,15 +136,87 @@ module.exports = {
                     .create({
                       data: {
                         question: questionId,
-                        assignation: assignationId,
+                        // assignation: assignationId,
                         answer: answerId,
+                        student: user,
                       },
                     });
                 }
               }
             }
           );
+          socket.on("end-quiz", async ({ assignationId }) => {
+            //get questions and ids of answers questions
+            const filteredQuestionCount = await strapi.db
+              .query("api::quiz.quiz")
+              .findOne({
+                where: {
+                  assignation: assignationId,
+                  questions: {
+                    answers: {
+                      isCorrect: true,
+                    },
+                  },
+                },
+                populate: {
+                  questions: {
+                    select: ["id"],
+                    populate: {
+                      answers: true,
+                    },
+                  },
+                },
+              });
 
+            let totalQuestion = filteredQuestionCount?.questions?.length;
+            let correctAnswersIds = filteredQuestionCount?.questions.map(
+              (item) => {
+                return item.answers[0].id;
+              }
+            );
+            console.log("correctAnswersIds: => ", correctAnswersIds);
+            //!TODO: need to check the number 1 by assignationId
+            const answersHistory = await strapi.db
+              .query("api::answer-history.answer-history")
+              .findMany({
+                where: {
+                  // assignation: assignationId,
+                  student: user,
+                },
+                populate: {
+                  answer: {
+                    select: ["id"],
+                  },
+                },
+              });
+
+            const studentAnswers = answersHistory.map(
+              (item) => item?.answer?.id
+            );
+            console.log("studentAnswers: => ", studentAnswers);
+            //calculate how many correct answer selected
+            const totalCorrectAnswerSelected = studentAnswers.reduce(
+              (total, currentAnswer) => {
+                if (correctAnswersIds.includes(currentAnswer)) {
+                  return total + 1;
+                }
+                return total;
+              },
+              0
+            );
+
+            const calculateScore =
+              (totalCorrectAnswerSelected * 20) / totalQuestion;
+
+            await strapi.db.query("api::assignation.assignation").update({
+              where: {
+                id: assignationId, // Here, you're filtering by the id of the assignation
+              },
+              data: {
+                score: Number(calculateScore), // Here, you're updating the score attribute
+              },
+            });
+          });
           socket.on("disconnect", () => {
             if (user) {
               console.log("user disconnected");
