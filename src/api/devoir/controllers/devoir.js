@@ -21,7 +21,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
       const createData = {
         titre,
         description,
-        users_permissions_user: userId,
+        professeur: userId,
         publishedAt: new Date(),
       };
 
@@ -36,7 +36,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
         "api::devoir.devoir",
         newDevoir.id,
         {
-          populate: ["teacher"],
+          populate: ["professeur"],
         }
       );
 
@@ -56,7 +56,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
       const { page = 1, pageSize = 5, _q } = ctx.query;
 
       const filters = {
-        users_permissions_user: {
+        professeur: {
           id: ctx.state.user.id,
         },
       };
@@ -97,7 +97,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
       console.log(ctx.state.user.id);
 
       const filters = {
-        users_permissions_user: {
+        professeur: {
           id: ctx.state.user.id,
         },
       };
@@ -106,7 +106,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
         "api::devoir.devoir",
         {
           filters,
-          populate: ["users_permissions_user"],
+          populate: ["professeur"],
         }
       );
 
@@ -134,9 +134,17 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
     try {
       const { id } = ctx.params;
 
+      const assignation = await strapi.entityService.findOne(
+        "api::assignation.assignation",
+        id, // L'ID de l'assignation doit être en deuxième argument
+        {
+          populate: ["devoir"], // Les options de population sont en troisième argument
+        }
+      );
+
       const devoir = await strapi.entityService.findOne(
         "api::devoir.devoir",
-        id
+        assignation.devoir.id
       );
 
       if (!devoir) {
@@ -171,7 +179,7 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
       const updateData = {
         titre,
         description,
-        users_permissions_user: userId,
+        professeur: userId,
       };
 
       // Mise à jour du devoir

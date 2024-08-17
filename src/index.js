@@ -1,7 +1,7 @@
 "use strict";
 
 const { Server } = require("socket.io");
-const answer = require("./api/answer/controllers/answer");
+// const answer = require("./api/answer/controllers/answer");
 
 let usersSockets = {};
 
@@ -89,134 +89,162 @@ module.exports = {
             }
           });
 
+          /************************************************************************/
           socket.on(
             "set-answer-quiz",
             async ({ assignationId, answerId, questionId }) => {
-              console.log(user);
-
-              const assignation = await strapi.db
-                .query("api::assignation.assignation")
-                .findOne({
-                  where: {
-                    id: assignationId,
-                    etudiant: user,
-                  },
-                  select: ["id", "score"],
-                });
-
-              if (assignation && assignation.score === null) {
-                const answer = await strapi.db
-                  .query("api::answer-history.answer-history")
+              try {
+                // Récupérer l'assignation pour l'étudiant en question
+                const assignation = await strapi.db
+                  .query("api::assignation.assignation")
                   .findOne({
                     where: {
-                      question: questionId,
-                      student: user,
-                      //assignation: assignationId,
+                      id: assignationId,
+                      etudiant: user.id, // Assurez-vous que "user" contient l'ID de l'étudiant
                     },
-                    select: ["id"],
+                    select: ["id", "score"],
                   });
-                console.log(answer);
 
-                if (answer) {
-                  await strapi.db
-                    .query("api::answer-history.answer-history")
-                    .update({
+                // Vérifier si l'assignation existe et que le score est encore null (donc quiz non complété)
+                if (assignation && assignation.score === null) {
+                  // Vérifier si une réponse existe déjà pour cette question et cet étudiant
+                  const existingAnswer = await strapi.db
+                    .query("api::reponse-etudiant.reponse-etudiant")
+                    .findOne({
                       where: {
                         question: questionId,
-                        student: user,
-                        // assignation: assignationId,
+                        etudiant: user.id,
+                        assignation: assignationId,
                       },
-                      data: {
-                        answer: answerId,
-                      },
+                      select: ["id"],
                     });
-                } else {
-                  await strapi.db
-                    .query("api::answer-history.answer-history")
-                    .create({
-                      data: {
-                        question: questionId,
-                        // assignation: assignationId,
-                        answer: answerId,
-                        student: user,
-                      },
-                    });
+
+                  // Si une réponse existe, la mettre à jour
+                  if (existingAnswer) {
+                    await strapi.db
+                      .query("api::reponse-etudiant.reponse-etudiant")
+                      .update({
+                        where: {
+                          id: existingAnswer.id,
+                        },
+                        data: {
+                          reponse: answerId,
+                        },
+                      });
+                  } else {
+                    // Sinon, créer une nouvelle réponse pour cette question
+                    await strapi.db
+                      .query("api::reponse-etudiant.reponse-etudiant")
+                      .create({
+                        data: {
+                          question: questionId,
+                          reponse: answerId,
+                          etudiant: user.id,
+                          assignation: assignationId,
+                        },
+                      });
+                  }
                 }
+              } catch (error) {
+                console.error(
+                  "Erreur lors de l'enregistrement de la réponse:",
+                  error
+                );
               }
             }
           );
+
+          /***************************************************************************/
           socket.on("end-quiz", async ({ assignationId }) => {
-            //get questions and ids of answers questions
-            const filteredQuestionCount = await strapi.db
-              .query("api::quiz.quiz")
-              .findOne({
-                where: {
-                  assignation: assignationId,
-                  questions: {
-                    answers: {
-                      isCorrect: true,
+            try {
+              // Récupérer les questions et les IDs des réponses correctes pour l'assignation
+              const filteredQuestionCount = await strapi.db
+                .query("api::quiz.quiz")
+                .findOne({
+                  where: {
+                    assignation: assignationId,
+                  },
+                  populate: {
+                    questions: {
+                      select: ["id"],
+                      populate: {
+                        reponses: {
+                          where: {
+                            isCorrect: true,
+                          },
+                          select: ["id"],
+                        },
+                      },
                     },
                   },
+                });
+
+              // Calculer le nombre total de questions
+              let totalQuestion = filteredQuestionCount?.questions?.length || 0;
+
+              // Extraire les IDs des réponses correctes
+              let correctAnswersIds =
+                filteredQuestionCount?.questions.flatMap((question) =>
+                  question.reponses.map((reponse) => reponse.id)
+                ) || [];
+
+              console.log("correctAnswersIds: => ", correctAnswersIds);
+
+              // Récupérer les réponses de l'étudiant pour l'assignation spécifique
+              const answersHistory = await strapi.db
+                .query("api::reponse-etudiant.reponse-etudiant")
+                .findMany({
+                  where: {
+                    assignation: assignationId,
+                    etudiant: user.id,
+                  },
+                  populate: {
+                    reponse: {
+                      select: ["id"],
+                    },
+                  },
+                });
+
+              // Extraire les IDs des réponses fournies par l'étudiant
+              const studentAnswers = answersHistory.map(
+                (item) => item?.reponse?.id
+              );
+              console.log("studentAnswers: => ", studentAnswers);
+
+              // Calculer le nombre de réponses correctes sélectionnées par l'étudiant
+              const totalCorrectAnswerSelected = studentAnswers.reduce(
+                (total, currentAnswer) => {
+                  if (correctAnswersIds.includes(currentAnswer)) {
+                    return total + 1;
+                  }
+                  return total;
                 },
-                populate: {
-                  questions: {
-                    select: ["id"],
-                    populate: {
-                      answers: true,
-                    },
-                  },
+                0
+              );
+
+              // Calculer le score final
+              const calculateScore =
+                (totalCorrectAnswerSelected * 20) / totalQuestion;
+
+              // Mettre à jour l'assignation avec le score calculé
+              await strapi.db.query("api::assignation.assignation").update({
+                where: {
+                  id: assignationId,
+                },
+                data: {
+                  score: Number(calculateScore),
                 },
               });
 
-            let totalQuestion = filteredQuestionCount?.questions?.length;
-            let correctAnswersIds = filteredQuestionCount?.questions.map(
-              (item) => {
-                return item.answers[0].id;
-              }
-            );
-            console.log("correctAnswersIds: => ", correctAnswersIds);
-            //!TODO: need to check the number 1 by assignationId
-            const answersHistory = await strapi.db
-              .query("api::answer-history.answer-history")
-              .findMany({
-                where: {
-                  // assignation: assignationId,
-                  student: user,
-                },
-                populate: {
-                  answer: {
-                    select: ["id"],
-                  },
-                },
-              });
-
-            const studentAnswers = answersHistory.map(
-              (item) => item?.answer?.id
-            );
-            console.log("studentAnswers: => ", studentAnswers);
-            //calculate how many correct answer selected
-            const totalCorrectAnswerSelected = studentAnswers.reduce(
-              (total, currentAnswer) => {
-                if (correctAnswersIds.includes(currentAnswer)) {
-                  return total + 1;
-                }
-                return total;
-              },
-              0
-            );
-
-            const calculateScore =
-              (totalCorrectAnswerSelected * 20) / totalQuestion;
-
-            await strapi.db.query("api::assignation.assignation").update({
-              where: {
-                id: assignationId, // Here, you're filtering by the id of the assignation
-              },
-              data: {
-                score: Number(calculateScore), // Here, you're updating the score attribute
-              },
-            });
+              console.log(
+                `Quiz terminé avec succès. Score calculé: ${calculateScore}`
+              );
+            } catch (error) {
+              console.error("Erreur lors de la finalisation du quiz:", error);
+            }
           });
+
+          /**********************************************************************************/
           socket.on("disconnect", () => {
             if (user) {
               console.log("user disconnected");

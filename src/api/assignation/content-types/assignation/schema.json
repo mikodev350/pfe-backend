@@ -39,14 +39,14 @@
       "relation": "oneToOne",
       "target": "api::group.group"
     },
-    "answer_histories": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::answer-history.answer-history",
-      "mappedBy": "assignation"
-    },
     "score": {
       "type": "integer"
+    },
+    "reponse_etudiants": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::reponse-etudiant.reponse-etudiant",
+      "mappedBy": "assignation"
     }
   }
 }

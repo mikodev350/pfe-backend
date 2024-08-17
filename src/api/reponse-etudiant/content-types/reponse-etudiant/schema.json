@@ -1,34 +1,32 @@
 {
   "kind": "collectionType",
-  "collectionName": "answer_histories",
+  "collectionName": "reponse_etudiants",
   "info": {
-    "singularName": "answer-history",
-    "pluralName": "answer-histories",
-    "displayName": "answerHistory",
-    "description": ""
+    "singularName": "reponse-etudiant",
+    "pluralName": "reponse-etudiants",
+    "displayName": "Reponse-Etudiant"
   },
   "options": {
     "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
-    "answer": {
+    "reponse": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::answer.answer"
+      "target": "api::reponse.reponse"
     },
-    "student": {
+    "etudiant": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"
     },
     "attachement": {
-      "type": "media",
-      "multiple": true,
-      "required": false,
       "allowedTypes": [
         "images"
-      ]
+      ],
+      "type": "media",
+      "multiple": true
     },
     "question": {
       "type": "relation",
@@ -39,7 +37,7 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::assignation.assignation",
-      "inversedBy": "answer_histories"
+      "inversedBy": "reponse_etudiants"
     }
   }
 }

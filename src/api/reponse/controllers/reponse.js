@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * answer controller
+ * reponse controller
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
 
-module.exports = createCoreController('api::answer.answer');
+module.exports = createCoreController('api::reponse.reponse');

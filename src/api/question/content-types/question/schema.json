@@ -15,10 +15,11 @@
     "question": {
       "type": "text"
     },
-    "answers": {
+    "reponses": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::answer.answer"
+      "target": "api::reponse.reponse",
+      "mappedBy": "question"
     }
   }
 }

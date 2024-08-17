@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * answer router
+ * reponse router
  */
 
 const { createCoreRouter } = require('@strapi/strapi').factories;
 
-module.exports = createCoreRouter('api::answer.answer');
+module.exports = createCoreRouter('api::reponse.reponse');

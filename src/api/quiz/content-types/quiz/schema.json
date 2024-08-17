@@ -23,7 +23,7 @@
       "relation": "oneToMany",
       "target": "api::question.question"
     },
-    "author": {
+    "auteur": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",

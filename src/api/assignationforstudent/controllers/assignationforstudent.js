@@ -53,6 +53,11 @@ module.exports = {
     try {
       const { assignationId, note } = ctx.request.body;
 
+      console.log("====================================");
+      console.log("ctx.request.body");
+
+      console.log(ctx.request.body);
+      console.log("====================================");
       // Validation de l'entrée
       // if (!devoir || !etudiant || note == null || note < 0 || note > 20) {
       //   return ctx.badRequest(

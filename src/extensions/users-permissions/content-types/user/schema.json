@@ -160,17 +160,17 @@
       "target": "api::devoir.devoir",
       "mappedBy": "teacher"
     },
-    "quizzes": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::quiz.quiz",
-      "mappedBy": "author"
-    },
     "assignations": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::assignation.assignation",
       "mappedBy": "etudiant"
+    },
+    "quizzes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::quiz.quiz",
+      "mappedBy": "auteur"
     }
   }
 }
