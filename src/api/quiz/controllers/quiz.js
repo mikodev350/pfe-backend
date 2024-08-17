@@ -123,4 +123,36 @@ module.exports = ({ strapi }) => ({
       return item;
     });
   },
+
+  async delete(ctx) {
+    const { id } = ctx.params;
+
+    const quiz = await strapi.db.query("api::quiz.quiz").findOne({
+      where: { id, author: ctx.state.user.id },
+      populate: { questions: { populate: { answers: true } } },
+    });
+
+    if (!quiz) {
+      return ctx.notFound("Quiz not found or you're not the author");
+    }
+
+    // Delete related questions and answers
+    await Promise.all(
+      quiz.questions.map(async (question) => {
+        await strapi.db.query("api::answer.answer").deleteMany({
+          where: { id: { $in: question.answers.map((a) => a.id) } },
+        });
+        await strapi.db.query("api::question.question").delete({
+          where: { id: question.id },
+        });
+      })
+    );
+
+    // Delete the quiz itself
+    await strapi.db.query("api::quiz.quiz").delete({
+      where: { id },
+    });
+
+    ctx.send({ message: "Quiz deleted successfully" });
+  },
 });

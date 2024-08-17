@@ -50,8 +50,6 @@ module.exports = {
   /********************************************************************************/
   // /make the noteeee /
   async assignNote(ctx) {
-    console.log(ctx.request.body);
-    console.log("====================================");
     try {
       const { assignationId, note } = ctx.request.body;
 
@@ -97,5 +95,53 @@ module.exports = {
       ctx.throw(500, "Erreur interne du serveur");
     }
   },
+
+  /***********************************************/
+  /************** get scor of all the studenttt   ****************/
   // Find one attacheement   with history of  assignation  for revoir
+  async findAllscoreOfStudent(ctx) {
+    const { id, type } = ctx.params;
+
+    console.log("Params:", ctx.params); // Log des paramètres
+
+    let data;
+
+    try {
+      if (type.toUpperCase() === "INDIVIDUEL") {
+        data = await strapi.entityService.findMany(
+          "api::assignation.assignation",
+          {
+            filters: { etudiant: id },
+            populate: ["devoir", "quiz", "etudiant"],
+          }
+        );
+      } else if (type.toUpperCase() === "GROUP") {
+        data = await strapi.entityService.findMany(
+          "api::assignation.assignation",
+          {
+            filters: { group: id },
+            populate: ["devoir", "quiz", "group", "etudiant"],
+          }
+        );
+      }
+
+      console.log("Data:", data); // Log des données récupérées
+
+      if (!data || data.length === 0) {
+        ctx.throw(404, "Aucune donnée trouvée pour les paramètres donnés.");
+      }
+
+      data = data.map((assignation) => ({
+        group: assignation.group ? assignation.group.nom : null, // Vérifie si le groupe existe
+        etudiant: assignation.etudiant ? assignation.etudiant.username : null, // Vérifie si l'étudiant existe
+        devoir: assignation.devoir ? assignation.devoir.titre : null, // Vérifie si le devoir existe
+        quiz: assignation.quiz ? assignation.quiz.titre : null, // Vérifie si le quiz existe
+        score: assignation.score,
+      }));
+      ctx.body = data;
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données:", error);
+      ctx.throw(500, "Erreur interne du serveur");
+    }
+  },
 };

@@ -132,7 +132,10 @@ module.exports = ({ strapi }) => ({
     const invitations = await strapi.db
       .query("api::relation.relation")
       .findMany({
-        where: { destinataire: user },
+        where: {
+          destinataire: user.id,
+          status: "attente",
+        },
         populate: {
           expediteur: {
             select: ["id", "username", "type", "email"],

@@ -1,9 +1,9 @@
-'use strict';
+"use strict";
 
 /**
  * notification service
  */
 
-const { createCoreService } = require('@strapi/strapi').factories;
+const { createCoreService } = require("@strapi/strapi").factories;
 
-module.exports = createCoreService('api::notification.notification');
+module.exports = createCoreService("api::notification.notification");

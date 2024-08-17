@@ -21,5 +21,15 @@ module.exports = {
         middlewares: [],
       },
     },
+    //  this is to get score for student
+    {
+      method: "GET",
+      path: "/assignations-custom/:type/:id",
+      handler: "assignationforstudent.findAllscoreOfStudent",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

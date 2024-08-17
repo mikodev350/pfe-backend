@@ -18,12 +18,13 @@ const formatDate = (date) => {
 module.exports = createCoreController(
   "api::assignation.assignation",
   ({ strapi }) => ({
-    // Create a new assignation
     async create(ctx) {
       try {
         const { entityId, userIds, type, assignments, TypeOfasssignation } =
           ctx.request.body;
         const professeur = ctx.state.user.id;
+
+        let createdAssignations = [];
 
         if (type === "GROUP") {
           // Boucle sur chaque étudiant
@@ -34,37 +35,89 @@ module.exports = createCoreController(
                 etudiant: etudiant,
                 professeur: professeur,
                 devoir: TypeOfasssignation === "DEVOIR" ? assignment : null,
+                quiz: TypeOfasssignation === "QUIZ" ? assignment : null,
                 group: entityId,
                 createdAt: new Date(),
               };
 
               // Créer l'assignation pour l'étudiant et l'assignation courants
-              await strapi.entityService.create(
+              const createdAssignation = await strapi.entityService.create(
                 "api::assignation.assignation",
                 {
                   data: createData,
                 }
               );
+
+              createdAssignations.push(createdAssignation);
+
+              // Créer une notification pour l'étudiant
+              const notification = await strapi.db
+                .query("api::notification.notification")
+                .create({
+                  data: {
+                    destinataire: etudiant,
+                    expediteur: professeur,
+                    notifText: `Nouvelle assignation ${TypeOfasssignation}`,
+                    redirect_url: "/student/assignments",
+                  },
+                });
+
+              // Envoyer la notification via WebSocket
+              const socketIds = strapi.usersSockets[etudiant];
+              if (socketIds && socketIds.length) {
+                strapi.io.to(socketIds).emit("notification", {
+                  notification: { ...notification, expediteur: ctx.state.user },
+                });
+              }
             }
           }
         } else if (type === "INDIVIDUEL") {
-          for (const assignment of assignments) {
-            const createData = {
-              etudiant: userIds[0],
-              professeur: professeur,
-              devoir: TypeOfasssignation === "DEVOIR" ? assignment : null,
-              group: entityId,
-              createdAt: new Date(),
-            };
+          for (const etudiant of userIds) {
+            for (const assignment of assignments) {
+              const createData = {
+                etudiant: etudiant,
+                professeur: professeur,
+                devoir: TypeOfasssignation === "DEVOIR" ? assignment : null,
+                quiz: TypeOfasssignation === "QUIZ" ? assignment : null,
+                createdAt: new Date(),
+              };
 
-            // Créer l'assignation pour l'étudiant et l'assignation courants
-            await strapi.entityService.create("api::assignation.assignation", {
-              data: createData,
-            });
+              // Créer l'assignation pour l'étudiant et l'assignation courants
+              const createdAssignation = await strapi.entityService.create(
+                "api::assignation.assignation",
+                {
+                  data: createData,
+                }
+              );
+
+              createdAssignations.push(createdAssignation);
+
+              // Créer une notification pour l'étudiant
+              const notification = await strapi.db
+                .query("api::notification.notification")
+                .create({
+                  data: {
+                    destinataire: etudiant,
+                    expediteur: professeur,
+                    notifText: `Nouvelle assignation ${TypeOfasssignation}`,
+                    redirect_url: "/assignations",
+                  },
+                });
+
+              // Envoyer la notification via WebSocket
+              const socketIds = strapi.usersSockets[etudiant];
+              if (socketIds && socketIds.length) {
+                strapi.io.to(socketIds).emit("notification", {
+                  notification: { ...notification, expediteur: ctx.state.user },
+                });
+              }
+            }
           }
         }
+
         ctx.send({
           message: "Assignations créées avec succès",
+          assignations: createdAssignations,
         });
       } catch (error) {
         console.error("Erreur lors de la création des assignations:", error);
@@ -73,7 +126,7 @@ module.exports = createCoreController(
     },
     async find(ctx) {
       try {
-        const { type, group, TypeElement, etudantId } = ctx.query;
+        const { type, group, TypeElement } = ctx.query;
         const professeur = ctx.state.user.id;
 
         let filters = {
@@ -90,9 +143,20 @@ module.exports = createCoreController(
         // Filtrer en fonction du type (DEVOIR ou QUIZ)
         if (type === "DEVOIR") {
           filters.devoir = { $notNull: true };
+          filters.quiz = { $null: true };
         } else if (type === "QUIZ") {
           filters.quiz = { $notNull: true };
+          filters.devoir = { $null: true };
         }
+
+        console.log(
+          "----------------------------------------------------------------------"
+        );
+        console.log("filters");
+        console.log(filters);
+        console.log(
+          "----------------------------------------------------------------------"
+        );
 
         // Récupérer les assignations avec les filtres appliqués
         const assignations = await strapi.entityService.findMany(
@@ -103,6 +167,10 @@ module.exports = createCoreController(
           }
         );
 
+        console.log("====================================");
+        console.log("assignations");
+        console.log(assignations);
+        console.log("====================================");
         // Filtrer les assignations pour supprimer les répétitions si TypeElement est "GROUP"
         let transformedData;
         if (TypeElement === "GROUP") {
@@ -220,6 +288,11 @@ module.exports = createCoreController(
         const { id } = ctx.params; // L'id du devoir ou du quiz
         const { groupId, TypeElement, type } = ctx.query; // L'id du groupe ou de l'individu, le TypeElement (GROUP/INDIVIDUEL), et le type (DEVOIR/QUIZ)
         const professeur = ctx.state.user.id;
+
+        console.log("------------------------------------------------");
+        console.log("ctx.query");
+        console.log(ctx.query);
+        console.log("------------------------------------------------");
 
         // Construire les filtres pour la suppression
         let filters = {

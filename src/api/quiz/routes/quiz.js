@@ -26,5 +26,10 @@ module.exports = {
       path: "/my-quizzes",
       handler: "quiz.find",
     },
+    {
+      method: "DELETE",
+      path: "/quiz/:id",
+      handler: "quiz.delete",
+    },
   ],
 };
