@@ -105,7 +105,6 @@ module.exports = createCoreService("api::parcour.parcour", ({ strapi }) => ({
     ]);
 
     const totalPages = Math.ceil(total / limit);
-
     return {
       data: parcours,
       meta: {

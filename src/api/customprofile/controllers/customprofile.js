@@ -39,7 +39,6 @@ module.exports = {
       const { id } = ctx.params;
       const userId = ctx.state.user.id;
 
-      console.log("fetchUserProfileById");
       if (!id) {
         return ctx.throw(400, "User ID is required");
       }
@@ -75,6 +74,11 @@ module.exports = {
   },
 
   async filterProfile(profile, userId) {
+    console.log("====================================");
+    console.log("profile");
+    console.log(profile);
+
+    console.log("====================================");
     // Fetch the relationship status between the logged-in user and the requested user
     const relation = await strapi.db.query("api::relation.relation").findOne({
       where: {
@@ -111,6 +115,7 @@ module.exports = {
     return {
       username: profile.username,
       email: profile.email,
+      type: profile.type,
       relationIsExist: !!relation,
       isFriends: relation?.status === "acceptée",
       isRequestSender: relation?.expediteur?.id === userId,

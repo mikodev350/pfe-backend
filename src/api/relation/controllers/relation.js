@@ -3,58 +3,56 @@
 const profil = require("../../profil/controllers/profil");
 
 const STUDENT = "STUDENT";
-const COATCH = "COATCH";
-const PROFESIONAL = "PROFESIONAL";
-const FRIEND = "FRIEND";
+const TEACHER = "TEACHER";
+
+const COACHING = "COACHING";
+const AMIS = "AMIS";
 
 module.exports = ({ strapi }) => ({
   async createFriendsRelation(ctx) {
-    const { recipientId } = ctx.request.body;
-    const user = ctx.state.user;
-    const recipient = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({
-        where: { id: recipientId },
-      });
-    const currentUser = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({
-        where: { id: user.id },
-        select: ["username", "id"],
-        populate: {
-          profil: {
-            photoProfil: true,
-          },
-        },
-      });
-    console.log(recipient);
-    if (!recipient) return ctx.badRequest("Role does not exist");
-    const type = findTypeRelation(user, recipient);
+    try {
+      const { recipientId, typeDemande } = ctx.request.body; // Récupérer typeDemande depuis le corps de la requête
 
-    await strapi.db.query("api::relation.relation").create({
-      data: {
-        destinataire: recipient,
-        expediteur: user,
-        type: type,
-      },
-    });
-    const notification = await strapi.db
-      .query("api::notification.notification")
-      .create({
+      const user = ctx.state.user;
+      const recipient = await strapi.db
+        .query("plugin::users-permissions.user")
+        .findOne({ where: { id: recipientId } });
+
+      if (!recipient) return ctx.badRequest("Recipient does not exist");
+
+      const type = typeDemande || (await findTypeRelation(user, recipient));
+
+      await strapi.db.query("api::relation.relation").create({
         data: {
-          destinataire: recipient,
-          expediteur: user,
-          notifText: "te demande de l'accepte",
-          redirect_url: "/communaute",
+          destinataire: recipient.id,
+          expediteur: user.id,
+          type: type,
         },
       });
-    const socketIds = strapi.usersSockets[recipient.id];
-    if (socketIds && socketIds.length) {
-      strapi.io.to(socketIds).emit("notification", {
-        notification: { ...notification, expediteur: currentUser },
-      });
+
+      const notification = await strapi.db
+        .query("api::notification.notification")
+        .create({
+          data: {
+            destinataire: recipient.id,
+            expediteur: user.id,
+            notifText: "te demande de l'accepter",
+            redirect_url: "/communaute",
+          },
+        });
+
+      const socketIds = strapi.usersSockets[recipient.id];
+      if (socketIds && socketIds.length) {
+        strapi.io.to(socketIds).emit("notification", {
+          notification: { ...notification, expediteur: user },
+        });
+      }
+
+      return ctx.send({ msg: "successed" });
+    } catch (error) {
+      console.error("Error creating relation:", error);
+      return ctx.internalServerError("Failed to create relation.");
     }
-    return ctx.send({ msg: "successed" });
   },
 
   async acceptRelation(ctx) {
@@ -128,29 +126,53 @@ module.exports = ({ strapi }) => ({
   },
 
   async findPendingRelation(ctx) {
-    const user = ctx.state.user;
-    const invitations = await strapi.db
-      .query("api::relation.relation")
-      .findMany({
-        where: {
-          destinataire: user.id,
-          status: "attente",
-        },
-        populate: {
-          expediteur: {
-            select: ["id", "username", "type", "email"],
-            populate: {
-              profil: { populate: { photoProfil: true } },
+    try {
+      const user = ctx.state.user;
+      const { type } = ctx.query; // Récupère le type de relation à partir des paramètres de la requête
+
+      // Construire la condition de filtrage en fonction du type
+      const conditions = {
+        destinataire: user.id,
+        status: "attente",
+      };
+
+      if (type) {
+        conditions.type = type; // Ajouter le filtre par type si spécifié
+      }
+
+      const invitations = await strapi.db
+        .query("api::relation.relation")
+        .findMany({
+          where: conditions,
+          populate: {
+            expediteur: {
+              select: ["id", "username", "type", "email"],
+              populate: {
+                profil: { populate: { photoProfil: true } },
+              },
             },
           },
-        },
-      });
-    return invitations;
+        });
+
+      return invitations;
+    } catch (error) {
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération des relations en attente"
+      );
+    }
   },
 });
 
 function findTypeRelation(userOne, userTwo) {
-  return userOne.type === STUDENT && userTwo.role === STUDENT
-    ? FRIEND
-    : PROFESIONAL;
+  console.log("--------------------------");
+
+  console.log(userOne);
+  console.log(userTwo);
+  console.log("--------------------------");
+
+  return (userOne.type === STUDENT && userTwo.type === STUDENT) ||
+    (userOne.type === TEACHER && userTwo.role === TEACHER)
+    ? AMIS
+    : COACHING;
 }
