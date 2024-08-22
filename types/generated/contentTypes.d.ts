@@ -1525,7 +1525,7 @@ export interface ApiRelationRelation extends Schema.CollectionType {
     >;
     status: Attribute.Enumeration<['attente', 'accept\u00E9e']> &
       Attribute.DefaultTo<'attente'>;
-    type: Attribute.Enumeration<['FRIEND', 'PROFESIONAL']> & Attribute.Required;
+    type: Attribute.Enumeration<['AMIS', 'COACHING']> & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
