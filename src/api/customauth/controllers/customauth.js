@@ -1,46 +1,44 @@
-// ./src/api/customauth/controllers/customauth.js
+"use strict";
 
-// http://localhost:1337/api/user-custom/update-role this after the user create account
 module.exports = {
   async updateRole(ctx) {
     const { role } = ctx.request.body;
-    const token = ctx.request.headers.authorization?.split(" ")[1];
-
-    if (!token) {
-      return ctx.unauthorized("No token provided");
-    }
-
-    let userId;
-
-    try {
-      const decoded = await strapi.plugins[
-        "users-permissions"
-      ].services.jwt.verify(token);
-      userId = decoded.id;
-    } catch (err) {
-      return ctx.unauthorized("Invalid token");
-    }
-
+    const userId = ctx.state.user.id;
     if (!role) {
       return ctx.badRequest("Please provide the new role");
     }
 
+    console.log(userId);
+
     let roleId;
-    if (role.toLowerCase() === "student") {
-      roleId = 4;
-    } else if (role.toLowerCase() === "teacher") {
-      roleId = 3;
-    } else {
-      return ctx.badRequest(
-        "Invalid role provided. Must be 'student' or 'teacher'."
-      );
+    switch (role.toLowerCase()) {
+      case "student":
+        roleId = 4; // Assuming 4 is the role ID for students
+        break;
+      case "teacher":
+        roleId = 3; // Assuming 3 is the role ID for teachers
+        break;
+      default:
+        return ctx.badRequest(
+          "Invalid role provided. Must be 'student' or 'teacher'."
+        );
     }
 
+    console.log("====================================");
+    console.log("roleId");
+
+    console.log(roleId);
+    console.log("====================================");
     try {
-      // Check if the role exists
       const existingRole = await strapi
         .query("plugin::users-permissions.role")
         .findOne({ where: { id: roleId } });
+
+      console.log("====================================");
+      console.log("existingRole");
+
+      console.log(existingRole);
+      console.log("====================================");
       if (!existingRole) {
         return ctx.badRequest("Role does not exist");
       }
@@ -57,21 +55,20 @@ module.exports = {
         .query("plugin::users-permissions.user")
         .update({ where: { id: userId }, data: { role: roleId } });
 
-      // Remove sensitive fields
       delete updatedUser.password;
       delete updatedUser.resetPasswordToken;
 
       return ctx.send({ updatedUser, role: existingRole.name });
     } catch (err) {
+      console.error("Error updating role:", err);
       return ctx.internalServerError("Something went wrong");
     }
   },
+
   async find(ctx) {
     try {
-      // Log de débogage
       console.log("Find request received");
 
-      // Récupérer tous les parcours
       const pathways = await strapi.entityService.findMany(
         "api::parcour.parcour"
       );

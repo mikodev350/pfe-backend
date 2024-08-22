@@ -15,7 +15,14 @@ module.exports = {
               id: studentId,
             },
           },
-          populate: ["devoir", "quiz", "professeur", "group", "etudiant"],
+          populate: [
+            "devoir",
+            "quiz",
+            "professeur",
+            "group",
+            "etudiant",
+            "reponse_etudiants",
+          ],
         }
       );
 
@@ -23,19 +30,52 @@ module.exports = {
         return ctx.throw(404, "Aucune assignation trouvée.");
       }
 
-      const transformedData = assignations.map((assignation) => {
-        let titre = "Titre non disponible";
-        if (assignation.devoir && assignation.devoir.titre) {
-          titre = assignation.devoir.titre;
-        } else if (assignation.quiz && assignation.quiz.titre) {
-          titre = assignation.quiz.titre;
-        }
-        return {
-          id: assignation.id,
-          titre: titre,
-          type: assignation.devoir ? "DEVOIR" : "QUIZ",
-        };
-      });
+      const transformedData = await Promise.all(
+        assignations.map(async (assignation) => {
+          let titre = "Titre non disponible";
+          let status = "Non fait"; // Default status
+
+          if (assignation.devoir && assignation.devoir.titre) {
+            titre = assignation.devoir.titre;
+            // Check if a response exists for this assignment
+            const reponseEtudiant = await strapi.entityService.findMany(
+              "api::reponse-etudiant.reponse-etudiant",
+              {
+                filters: {
+                  etudiant: {
+                    id: studentId,
+                  },
+                  assignation: {
+                    id: assignation.id,
+                  },
+                },
+              }
+            );
+
+            if (reponseEtudiant && reponseEtudiant.length > 0) {
+              // Check if a score exists
+              if (assignation.score) {
+                status = "Fait";
+              } else {
+                status = "Fait, peut toujours être modifié";
+              }
+            }
+          } else if (assignation.quiz && assignation.quiz.titre) {
+            titre = assignation.quiz.titre;
+            // Check if a score exists for this assignment
+            if (assignation.score) {
+              status = "Fait";
+            }
+          }
+
+          return {
+            id: assignation.id,
+            titre: titre,
+            type: assignation.devoir ? "DEVOIR" : "QUIZ",
+            status: status, // Add the status
+          };
+        })
+      );
 
       ctx.send(transformedData);
     } catch (error) {
@@ -46,7 +86,6 @@ module.exports = {
       ctx.throw(500, "Erreur lors de la récupération des assignations");
     }
   },
-
   /********************************************************************************/
   // /make the noteeee /
   async assignNote(ctx) {

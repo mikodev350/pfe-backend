@@ -128,6 +128,7 @@ module.exports = createCoreController(
       try {
         const { type, group, TypeElement } = ctx.query;
         const professeur = ctx.state.user.id;
+        const groupId = Number(group);
 
         let filters = {
           professeur: professeur,
@@ -135,9 +136,9 @@ module.exports = createCoreController(
 
         // Filtrer en fonction du groupe ou de l'étudiant
         if (group && TypeElement === "GROUP") {
-          filters.group = group;
+          filters.group = groupId;
         } else if (group && TypeElement === "INDIVIDUEL") {
-          filters.etudiant = { id: Number(group) };
+          filters.etudiant = { id: groupId };
         }
 
         // Filtrer en fonction du type (DEVOIR ou QUIZ)
@@ -167,20 +168,19 @@ module.exports = createCoreController(
           }
         );
 
-        console.log("====================================");
-        console.log("assignations");
-        console.log(assignations);
-        console.log("====================================");
-        // Filtrer les assignations pour supprimer les répétitions si TypeElement est "GROUP"
         let transformedData;
+
         if (TypeElement === "GROUP") {
           // Utiliser un Map pour stocker les assignations uniques par groupe
           const uniqueAssignmentsMap = new Map();
 
           assignations.forEach((assignation) => {
             let titre = "Titre non disponible";
+            let devoirIdElement = null;
+
             if (type === "DEVOIR" && assignation.devoir) {
               titre = assignation.devoir.titre;
+              devoirIdElement = assignation.devoir.id;
             } else if (type === "QUIZ" && assignation.quiz) {
               titre = assignation.quiz.titre;
             }
@@ -192,6 +192,8 @@ module.exports = createCoreController(
                 id: assignation.id,
                 titre: titre,
                 date: formatDate(assignation.createdAt),
+                groupeId: assignation.group ? assignation.group?.id : null,
+                devoirId: devoirIdElement,
               });
             }
           });
@@ -202,8 +204,11 @@ module.exports = createCoreController(
           // Si c'est un type individuel, simplement transformer les données sans filtrer les répétitions
           transformedData = assignations.map((assignation) => {
             let titre = "Titre non disponible";
+            let devoirIdElement = null;
+
             if (type === "DEVOIR" && assignation.devoir) {
               titre = assignation.devoir.titre;
+              devoirIdElement = assignation.devoir.id;
             } else if (type === "QUIZ" && assignation.quiz) {
               titre = assignation.quiz.titre;
             }
@@ -212,9 +217,16 @@ module.exports = createCoreController(
               id: assignation.id,
               titre: titre,
               date: formatDate(assignation.createdAt),
+              groupeId: TypeElement === "GROUP" ? assignation.group?.id : null,
+              devoirId: devoirIdElement,
             };
           });
         }
+
+        console.log("====================================");
+        console.log("transformedData");
+        console.log(transformedData);
+        console.log("====================================");
 
         // Envoyer les données transformées
         ctx.send(transformedData);
@@ -226,7 +238,6 @@ module.exports = createCoreController(
         ctx.throw(500, "Erreur lors de la récupération des assignations");
       }
     },
-
     // Get a single assignation by ID
     async findOne(ctx) {
       try {

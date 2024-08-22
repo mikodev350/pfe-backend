@@ -133,19 +133,43 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
   async findOne(ctx) {
     try {
       const { id } = ctx.params;
+      const { type } = ctx.query;
 
-      const assignation = await strapi.entityService.findOne(
-        "api::assignation.assignation",
-        id, // L'ID de l'assignation doit être en deuxième argument
-        {
-          populate: ["devoir"], // Les options de population sont en troisième argument
+      let devoir;
+
+      console.log("====================================");
+      console.log(type);
+      console.log("====================================");
+      if (type === "devoir") {
+        // Si le type est 'devoir', on récupère directement le devoir
+        devoir = await strapi.entityService.findOne("api::devoir.devoir", id);
+      } else if (type === "assignation") {
+        // Si le type est 'assignation', on passe d'abord par l'assignation
+        const assignation = await strapi.entityService.findOne(
+          "api::assignation.assignation",
+          id,
+          {
+            populate: ["devoir"], // On inclut le devoir lié dans la requête
+          }
+        );
+        console.log("====================================");
+
+        console.log("assignation");
+
+        console.log(assignation);
+        console.log("====================================");
+
+        if (!assignation || !assignation.devoir) {
+          return ctx.throw(404, "Assignation ou devoir non trouvé");
         }
-      );
 
-      const devoir = await strapi.entityService.findOne(
-        "api::devoir.devoir",
-        assignation.devoir.id
-      );
+        devoir = assignation.devoir;
+      } else {
+        return ctx.throw(
+          400,
+          "Type invalide, veuillez spécifier 'devoir' ou 'assignation'"
+        );
+      }
 
       if (!devoir) {
         return ctx.throw(404, "Devoir non trouvé");
@@ -157,6 +181,32 @@ module.exports = createCoreController("api::devoir.devoir", ({ strapi }) => ({
       ctx.throw(500, "Erreur lors de la récupération du devoir");
     }
   },
+
+  // // Récupération d'un devoir spécifique
+  // async findOneForUpdate(ctx) {
+  //   console.log("---------------------------------------");
+  //   console.log("findOneForUpdate");
+  //   console.log("---------------------------------------");
+  //   try {
+  //     const { id } = ctx.params;
+
+  //     const devoir = await strapi.entityService.findOne(
+  //       "api::devoir.devoir",
+  //       id
+  //     );
+
+  //     console.log(devoir);
+
+  //     if (!devoir) {
+  //       return ctx.throw(404, "Devoir non trouvé");
+  //     }
+
+  //     ctx.send(devoir);
+  //   } catch (error) {
+  //     console.error("Erreur lors de la récupération du devoir:", error);
+  //     ctx.throw(500, "Erreur lors de la récupération du devoir");
+  //   }
+  // },
 
   // Mise à jour d'un devoir
   async update(ctx) {

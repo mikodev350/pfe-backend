@@ -26,5 +26,10 @@ module.exports = {
       path: "/relation/:id",
       handler: "relation.declineRelation",
     },
+    {
+      method: "GET",
+      path: "/relations/accepted",
+      handler: "relation.findAcceptedRelations",
+    },
   ],
 };

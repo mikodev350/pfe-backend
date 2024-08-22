@@ -14,17 +14,6 @@ module.exports = createCoreController(
         const { devoirId } = ctx.query;
         const { reponse, attachement } = ctx.request.body;
 
-        console.log("====================================");
-        console.log("ctx.query");
-
-        console.log(ctx.query);
-
-        console.log("ctx.request.body");
-
-        console.log(ctx.request.body);
-
-        console.log("====================================");
-
         const assignation = await strapi.entityService.findOne(
           "api::assignation.assignation",
           devoirId, // L'ID de l'assignation doit être en deuxième argument
@@ -210,8 +199,6 @@ module.exports = createCoreController(
     },
 
     async findFilteredDevoir(ctx) {
-      console.log(ctx.query);
-
       const { group, etudiant, devoir } = ctx.query;
       const professeur = ctx.state.user.id;
 

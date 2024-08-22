@@ -37,6 +37,8 @@ module.exports = {
         middlewares: [],
       },
     },
+
+    // findOneForUpdate
     {
       method: "PUT",
       path: "/devoirs/:id",

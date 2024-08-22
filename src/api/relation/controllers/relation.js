@@ -1,12 +1,11 @@
 "use strict";
 
-const profil = require("../../profil/controllers/profil");
-
 const STUDENT = "STUDENT";
 const TEACHER = "TEACHER";
 
 const COACHING = "COACHING";
 const AMIS = "AMIS";
+const MENTORAT = "MENTORAT";
 
 module.exports = ({ strapi }) => ({
   async createFriendsRelation(ctx) {
@@ -20,9 +19,9 @@ module.exports = ({ strapi }) => ({
 
       if (!recipient) return ctx.badRequest("Recipient does not exist");
 
-      const type = typeDemande || (await findTypeRelation(user, recipient));
+      const type = typeDemande || findTypeRelation(user, recipient);
 
-      await strapi.db.query("api::relation.relation").create({
+      const Relation = await strapi.db.query("api::relation.relation").create({
         data: {
           destinataire: recipient.id,
           expediteur: user.id,
@@ -37,7 +36,10 @@ module.exports = ({ strapi }) => ({
             destinataire: recipient.id,
             expediteur: user.id,
             notifText: "te demande de l'accepter",
-            redirect_url: "/communaute",
+            redirect_url:
+              Relation.type === COACHING
+                ? "/communaute/coaching"
+                : "/communaute/invitations",
           },
         });
 
@@ -47,7 +49,6 @@ module.exports = ({ strapi }) => ({
           notification: { ...notification, expediteur: user },
         });
       }
-
       return ctx.send({ msg: "successed" });
     } catch (error) {
       console.error("Error creating relation:", error);
@@ -56,51 +57,79 @@ module.exports = ({ strapi }) => ({
   },
 
   async acceptRelation(ctx) {
-    const { recipientId: id } = ctx.request.body;
-    const user = ctx.state.user;
+    try {
+      const { recipientId: id } = ctx.request.body;
+      const user = ctx.state.user;
 
-    await strapi.db.query("api::relation.relation").update({
-      where: {
-        $or: [
-          {
-            destinataire: user.id,
-            expediteur: id,
+      // Récupérer la relation existante avec expéditeur et destinataire peuplés
+      const existingRelation = await strapi.db
+        .query("api::relation.relation")
+        .findOne({
+          where: {
+            $or: [
+              { destinataire: user.id, expediteur: id },
+              { expediteur: user.id, destinataire: id },
+            ],
           },
-          {
-            expediteur: user.id,
-            destinataire: id,
+          populate: ["expediteur", "destinataire"],
+        });
+
+      // Vérifier si la relation existe
+      if (!existingRelation) {
+        return ctx.throw(404, "Relation non trouvée");
+      }
+
+      // Inverser les rôles si l'expéditeur est un enseignant et le destinataire est un étudiant
+      if (
+        existingRelation.expediteur.type === TEACHER &&
+        existingRelation.destinataire.type === STUDENT
+      ) {
+        // Mettre à jour la relation avec les rôles inversés et le type à MENTORAT
+        await strapi.db.query("api::relation.relation").update({
+          where: { id: existingRelation.id },
+          data: {
+            expediteur: existingRelation.destinataire.id,
+            destinataire: existingRelation.expediteur.id,
+            type: COACHING,
+            status: "acceptée",
           },
-        ],
-      },
-      data: { status: "acceptée" },
-    });
+        });
+      } else {
+        // Accepter la relation normalement
+        await strapi.db.query("api::relation.relation").update({
+          where: { id: existingRelation.id },
+          data: { status: "acceptée" },
+        });
+      }
 
-    const conversationExist = await strapi.db
-      .query("api::conversation.conversation")
-      .findOne({
-        populate: ["participants"],
-        where: {
-          type: "PRIVATE",
-          participants: {
-            $and: [{ id: user.id }, { id: id }],
+      // Vérifier si une conversation privée existe déjà entre les deux utilisateurs
+      const conversationExist = await strapi.db
+        .query("api::conversation.conversation")
+        .findOne({
+          populate: ["participants"],
+          where: {
+            type: "PRIVATE",
+            participants: {
+              $and: [{ id: user.id }, { id: id }],
+            },
           },
-        },
-      });
+        });
 
-    console.log("THE CONVERSATION ");
-    console.log("conversationExist ");
-    console.log(conversationExist);
+      // Créer une conversation privée si elle n'existe pas
+      if (!conversationExist) {
+        await strapi.db.query("api::conversation.conversation").create({
+          data: {
+            participants: [user.id, id],
+            type: "PRIVATE",
+          },
+        });
+      }
 
-    if (!conversationExist) {
-      await strapi.db.query("api::conversation.conversation").create({
-        data: {
-          participants: [user.id, id],
-          type: "PRIVATE",
-        },
-      });
+      return ctx.send({ msg: "Demande acceptée avec succès" });
+    } catch (error) {
+      console.error("Erreur lors de l'acceptation de la relation:", error);
+      ctx.throw(500, "Erreur lors de l'acceptation de la relation");
     }
-
-    return ctx.send({ msg: "Request accepted successfully" });
   },
 
   async declineRelation(ctx) {
@@ -162,15 +191,48 @@ module.exports = ({ strapi }) => ({
       );
     }
   },
+
+  async findAcceptedRelations(ctx) {
+    try {
+      const user = ctx.state.user;
+      const { type } = ctx.query;
+
+      // Construire la condition de filtrage
+      const conditions = {
+        expediteur: user.id, // Filtrer par l'utilisateur comme expéditeur
+        status: "acceptée", // Status de la relation acceptée
+      };
+
+      if (type) {
+        conditions.type = type; // Ajouter le filtre par type si spécifié
+      }
+
+      const relations = await strapi.db
+        .query("api::relation.relation")
+        .findMany({
+          where: conditions,
+          populate: {
+            destinataire: {
+              select: ["id", "username", "type", "email"],
+              populate: {
+                profil: { populate: { photoProfil: true } },
+              },
+            },
+          },
+        });
+
+      return ctx.send(relations);
+    } catch (error) {
+      console.error("Error fetching accepted relations:", error);
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération des relations acceptées"
+      );
+    }
+  },
 });
 
 function findTypeRelation(userOne, userTwo) {
-  console.log("--------------------------");
-
-  console.log(userOne);
-  console.log(userTwo);
-  console.log("--------------------------");
-
   return (userOne.type === STUDENT && userTwo.type === STUDENT) ||
     (userOne.type === TEACHER && userTwo.role === TEACHER)
     ? AMIS
