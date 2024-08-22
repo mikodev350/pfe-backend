@@ -31,5 +31,22 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/assignations-custom/notes",
+      handler: "assignationforstudent.findAllScore",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "GET",
+      path: "/assignations-custom/recent",
+      handler: "assignationforstudent.findRecentResource",
+      config: {
+        policies: [],
+      },
+    },
   ],
 };

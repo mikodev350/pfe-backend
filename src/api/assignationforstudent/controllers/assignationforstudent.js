@@ -188,4 +188,70 @@ module.exports = {
       ctx.throw(500, "Erreur interne du serveur");
     }
   },
+  /***********************************************/
+  /**************   GET ALL scoree  ****************/
+
+  async findAllScore(ctx) {
+    const etudiantId = ctx.state.user.id;
+
+    console.log(etudiantId);
+
+    const entries = await strapi.entityService.findMany(
+      "api::assignation.assignation",
+      {
+        filters: { etudiant: { id: etudiantId } },
+        populate: [
+          "devoir",
+          "quiz",
+          "professeur",
+          "group",
+          "score",
+          "reponse_etudiants",
+        ],
+      }
+    );
+
+    const notes = entries.map((entry) => {
+      return {
+        id: entry.id,
+        titre: entry.devoir
+          ? entry.devoir.titre
+          : entry.quiz
+          ? entry.quiz.titre
+          : null,
+        type: entry.devoir ? "devoir" : entry.quiz ? "quiz" : null,
+        score: entry.score,
+      };
+    });
+
+    return notes;
+  },
+
+  /***************************************************************************/
+  // get recent resorucee if the existe
+  async findRecentResource(ctx) {
+    try {
+      const recentResources = await strapi
+        .query("api::resource.resource")
+        .findMany({
+          limit: 3, // Limit to 3 results
+          sort: { createdAt: "desc" }, // Sort by creation date (newest first)
+          select: ["nom", "createdAt"], // Select only the 'nom' and 'createdAt' fields
+        });
+
+      // Normalize the format of the returned data
+      const formattedResources = recentResources.map((resource) => ({
+        nom: resource.nom,
+        date: new Date(resource.createdAt).toLocaleDateString("fr-FR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      }));
+
+      return formattedResources;
+    } catch (error) {
+      ctx.throw(500, "Erreur lors de la récupération des ressources récentes");
+    }
+  },
 };
