@@ -112,6 +112,109 @@ module.exports = ({ strapi }) => ({
     return randomQuiz;
   },
 
+  async updateQuestion(ctx) {
+    const { faussereponse, vraixreponseId, vraixreponse, question } =
+      ctx.request.body.question;
+    const { id } = ctx.request.params;
+    console.log(id);
+
+    const answers = await Promise.all(
+      faussereponse.map(async (answ) => {
+        if (answ.new) {
+          return await strapi.db.query("api::reponse.reponse").create({
+            data: {
+              question: {
+                id: id,
+              },
+              reponse: answ.reponse,
+              isCorrect: false,
+            },
+          });
+        } else {
+          return await strapi.db.query("api::reponse.reponse").update({
+            where: {
+              id: answ.id,
+            },
+            data: {
+              question: {
+                id: id,
+              },
+              reponse: answ.reponse,
+            },
+          });
+        }
+      })
+    );
+    const correctAnswer = await strapi.db.query("api::reponse.reponse").update({
+      where: {
+        id: vraixreponseId,
+      },
+      data: {
+        question: {
+          id: id,
+        },
+        reponse: vraixreponse,
+      },
+    });
+
+    await strapi.db.query("api::question.question").update({
+      where: {
+        id: id,
+      },
+      data: {
+        question: question,
+      },
+    });
+
+    let totalAnswersDB = await strapi.db
+      .query("api::reponse.reponse")
+      .findMany({
+        where: {
+          question: {
+            id: id,
+          },
+        },
+      });
+    totalAnswersDB = totalAnswersDB.map((element) => element.id);
+    const newTotalAnswers = [
+      ...answers.map((item) => item.id),
+      correctAnswer.id,
+    ];
+    console.log(newTotalAnswers, totalAnswersDB);
+    totalAnswersDB.map(async (id) => {
+      if (!newTotalAnswers.includes(id)) {
+        await strapi.db.query("api::reponse.reponse").delete({
+          where: {
+            id: id,
+          },
+        });
+      }
+    });
+    return "success";
+  },
+
+  async updateQuiz(ctx) {
+    const { titre, duration } = ctx.request.body;
+    const { id } = ctx.request.params;
+    console.log(ctx.request.body);
+    console.log(id);
+    try {
+      const d = await strapi.db.query("api::quiz.quiz").update({
+        where: {
+          id: id,
+        },
+        data: {
+          titre: titre,
+          duration: duration,
+        },
+      });
+      console.log("Update successful:", d);
+    } catch (error) {
+      console.error("Update failed:", error);
+    }
+    return "success";
+  },
+
   async find(ctx) {
     const result = await strapi.db.query("api::quiz.quiz").findMany({
       where: {
