@@ -27,7 +27,8 @@ module.exports = createCoreController(
         // Check if the user exists
         const user = await strapi
           .query("plugin::users-permissions.user")
-          .findOne({ where: { id: userId } });
+          .findOne({ where: { id: Number(userId) } });
+        console.log("erreur est icic =========>>>");
 
         if (!user) {
           return ctx.throw(404, "User not found");
@@ -35,9 +36,9 @@ module.exports = createCoreController(
 
         // Prepare images array
         const imageIds = images
-          ? images.map((image) => {
-              id: image.id;
-            })
+          ? images.map((image) => ({
+              id: image.id,
+            }))
           : [];
         console.log("====================================");
         console.log(imageIds);
