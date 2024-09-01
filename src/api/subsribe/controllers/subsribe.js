@@ -22,6 +22,7 @@ module.exports = {
         auth: ctx.request.body.keys.auth,
       },
     };
+    console.log(subscription);
 
     if (!subscription) {
       return ctx.badRequest("Subscription details are required");
@@ -32,11 +33,19 @@ module.exports = {
       // await strapi.query("subscription").create({ subscription });
 
       // Optionnel : envoyer une notification de test
+      // Stocker l'abonnement dans la base de données
+      await strapi.query("api::subscription.subscription").create({
+        data: {
+          endpoint: subscription.endpoint,
+          p256dh: subscription.keys.p256dh,
+          auth: subscription.keys.auth,
+        },
+      });
       console.log("====================================");
       console.log("Vous êtes abonné aux notifications");
       console.log("====================================");
       const payload = {
-        title: "Bienvenue!",
+        title: "EasyLearn",
         body: "Vous êtes abonné aux notifications.",
       };
       await push.send([subscription], payload);
@@ -44,6 +53,50 @@ module.exports = {
       ctx.send({ message: "Subscribed successfully" });
     } catch (error) {
       ctx.send({ error: "Failed to subscribe" });
+    }
+  },
+
+  async notify(ctx) {
+    try {
+      const { endpoint, message } = ctx.request.body; // Récupérer l'endpoint depuis le frontend
+
+      console.log(ctx.request.body);
+
+      // Trouver l'abonnement correspondant à l'endpoint
+      const subscriptionData = await strapi
+        .query("api::subscription.subscription")
+        .findOne({
+          where: { endpoint },
+        });
+
+      if (!subscriptionData) {
+        return ctx.badRequest("Subscription not found for the given endpoint");
+      }
+
+      const payload = {
+        title: "EasyLearn",
+        body: `${message}`,
+      };
+
+      const subscription = {
+        endpoint: subscriptionData.endpoint,
+        keys: {
+          p256dh: subscriptionData.p256dh,
+          auth: subscriptionData.auth,
+        },
+      };
+      console.log("====================================");
+      console.log("payload");
+
+      console.log(payload);
+      console.log("====================================");
+      // Envoyer la notification au seul abonnement trouvé
+      await push.send([subscription], payload);
+
+      ctx.send({ message: "Subscribed successfully" });
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      ctx.send({ error: "Failed to send notification" });
     }
   },
 };

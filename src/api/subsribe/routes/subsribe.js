@@ -9,5 +9,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "POST",
+      path: "/subscribe/notify",
+      handler: "subsribe.notify",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

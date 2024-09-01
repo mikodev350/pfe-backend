@@ -58,7 +58,7 @@ module.exports = createCoreController(
                     destinataire: etudiant,
                     expediteur: professeur,
                     notifText: `Nouvelle assignation ${TypeOfasssignation}`,
-                    redirect_url: "/student/assignments",
+                    redirect_url: "/assignments",
                   },
                 });
 
@@ -100,7 +100,7 @@ module.exports = createCoreController(
                     destinataire: etudiant,
                     expediteur: professeur,
                     notifText: `Nouvelle assignation ${TypeOfasssignation}`,
-                    redirect_url: "/assignations",
+                    redirect_url: "/assignments",
                   },
                 });
 

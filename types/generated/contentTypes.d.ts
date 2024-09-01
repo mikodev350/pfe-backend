@@ -1722,6 +1722,43 @@ export interface ApiResultatResultat extends Schema.CollectionType {
   };
 }
 
+export interface ApiSubscriptionSubscription extends Schema.CollectionType {
+  collectionName: 'subscriptions';
+  info: {
+    singularName: 'subscription';
+    pluralName: 'subscriptions';
+    displayName: 'subscription';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    endpoint: Attribute.Text;
+    p256dh: Attribute.Text;
+    auth: Attribute.Text;
+    utilisateur: Attribute.Relation<
+      'api::subscription.subscription',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::subscription.subscription',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::subscription.subscription',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -1759,6 +1796,7 @@ declare module '@strapi/types' {
       'api::reponse-etudiant.reponse-etudiant': ApiReponseEtudiantReponseEtudiant;
       'api::resource.resource': ApiResourceResource;
       'api::resultat.resultat': ApiResultatResultat;
+      'api::subscription.subscription': ApiSubscriptionSubscription;
     }
   }
 }
