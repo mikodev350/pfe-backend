@@ -9,5 +9,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/fetch-conversation",
+      handler: "fetch-all.getIdOfConverstation",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

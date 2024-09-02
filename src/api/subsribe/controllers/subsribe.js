@@ -85,11 +85,6 @@ module.exports = {
           auth: subscriptionData.auth,
         },
       };
-      console.log("====================================");
-      console.log("payload");
-
-      console.log(payload);
-      console.log("====================================");
       // Envoyer la notification au seul abonnement trouvé
       await push.send([subscription], payload);
 

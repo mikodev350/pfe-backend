@@ -17,6 +17,16 @@ module.exports = {
       handler: "quiz.findOne",
     },
     {
+      method: "PUT",
+      path: "/question-quiz/:id",
+      handler: "quiz.updateQuestion",
+    },
+    {
+      method: "PUT",
+      path: "/quiz/:id",
+      handler: "quiz.updateQuiz",
+    },
+    {
       method: "GET",
       path: "/take-quiz/:id",
       handler: "quiz.findTest",
