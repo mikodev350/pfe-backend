@@ -37,7 +37,7 @@ module.exports = ({ strapi }) => ({
         username: student.expediteur.username,
         email: student.expediteur.email,
         photoProfil:
-          student.expediteur.profil.photoProfil?.url || "default-avatar-url",
+          student.expediteur.profil?.photoProfil?.url || "default-avatar-url",
       }));
 
       return ctx.send({ students: studentList });

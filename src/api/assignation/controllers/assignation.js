@@ -25,12 +25,21 @@ module.exports = createCoreController(
         const professeur = ctx.state.user.id;
 
         let createdAssignations = [];
+        console.log("------------------------------------");
+
+        console.log("userIds");
 
         if (type === "GROUP") {
           // Boucle sur chaque étudiant
           for (const etudiant of userIds) {
             // Boucle sur chaque assignment si c'est un tableau
             for (const assignment of assignments) {
+              console.log("====================================");
+              console.log("assignment");
+
+              console.log(assignment);
+
+              console.log("====================================");
               const createData = {
                 etudiant: etudiant,
                 professeur: professeur,
@@ -55,8 +64,8 @@ module.exports = createCoreController(
                 .query("api::notification.notification")
                 .create({
                   data: {
-                    destinataire: etudiant,
-                    expediteur: professeur,
+                    destinataire: createData.etudiant,
+                    expediteur: createData.professeur,
                     notifText: `Nouvelle assignation ${TypeOfasssignation}`,
                     type: "NOTIFICATION",
                     redirect_url: "/assignments",
@@ -179,12 +188,14 @@ module.exports = createCoreController(
           assignations.forEach((assignation) => {
             let titre = "Titre non disponible";
             let devoirIdElement = null;
+            let quizIdElement = null;
 
             if (type === "DEVOIR" && assignation.devoir) {
               titre = assignation.devoir.titre;
               devoirIdElement = assignation.devoir.id;
             } else if (type === "QUIZ" && assignation.quiz) {
               titre = assignation.quiz.titre;
+              quizIdElement = assignation.quiz.id;
             }
 
             // Vérifier si l'assignation est déjà présente pour le groupe
@@ -196,6 +207,7 @@ module.exports = createCoreController(
                 date: formatDate(assignation.createdAt),
                 groupeId: assignation.group ? assignation.group?.id : null,
                 devoirId: devoirIdElement,
+                quizzId: quizIdElement,
               });
             }
           });
@@ -299,59 +311,144 @@ module.exports = createCoreController(
     async delete(ctx) {
       try {
         const { id } = ctx.params; // L'id du devoir ou du quiz
-        const { groupId, TypeElement, type } = ctx.query; // L'id du groupe ou de l'individu, le TypeElement (GROUP/INDIVIDUEL), et le type (DEVOIR/QUIZ)
+        const { groupId, TypeElement, type, IdDevoirOrQuiz } = ctx.query; // L'id du groupe ou de l'individu, le TypeElement (GROUP/INDIVIDUEL), et le type (DEVOIR/QUIZ)
         const professeur = ctx.state.user.id;
 
-        console.log("------------------------------------------------");
-        console.log("ctx.query");
+        console.log("--------------------------------------------");
+        console.log(
+          "----------------------deleate- ------------>ctx.params----------"
+        );
+        console.log(ctx.params);
+        console.log("---------------ctx.query--------------");
         console.log(ctx.query);
         console.log("------------------------------------------------");
 
-        // Construire les filtres pour la suppression
-        let filters = {
-          professeur: professeur,
-        };
-
-        // Filtrer en fonction du groupe ou de l'étudiant
-        if (TypeElement === "GROUP") {
-          filters.group = groupId;
-        } else if (TypeElement === "INDIVIDUEL") {
-          filters.etudiant = groupId; // groupId est utilisé ici pour l'id de l'étudiant dans le cas INDIVIDUEL
-        }
-
-        // Filtrer en fonction du type (DEVOIR ou QUIZ) et de l'id spécifique
-        if (type === "DEVOIR") {
-          filters.devoir = id;
-        } else if (type === "QUIZ") {
-          filters.quiz = id;
-        }
-
-        // Rechercher les assignations à supprimer en utilisant les filtres construits
-        const assignationsToDelete = await strapi.entityService.findMany(
-          "api::assignation.assignation",
-          {
-            filters: filters,
-          }
-        );
-
-        // Si on trouve des assignations, on les supprime
-        if (assignationsToDelete.length > 0) {
-          for (const assignation of assignationsToDelete) {
-            await strapi.entityService.delete(
-              "api::assignation.assignation",
-              assignation.id
-            );
-          }
+        // Si le TypeElement est "INDIVIDUEL", supprimer directement l'assignation avec l'ID
+        if (TypeElement === "INDIVIDUEL") {
+          await strapi.entityService.delete(
+            "api::assignation.assignation",
+            Number(id)
+          );
           ctx.send({
-            message: `${assignationsToDelete.length} assignations supprimées avec succès`,
+            message: "Assignation individuelle supprimée avec succès",
           });
         } else {
-          ctx.send({ message: "Aucune assignation trouvée à supprimer" });
+          // Sinon, construire les filtres pour la suppression dans le cas des groupes
+          let filters = {
+            professeur: professeur,
+          };
+
+          // Filtrer en fonction du groupe
+          if (TypeElement === "GROUP") {
+            filters.group = groupId;
+          }
+
+          // Filtrer en fonction du type (DEVOIR ou QUIZ)
+          if (type === "DEVOIR") {
+            filters.devoir = Number(IdDevoirOrQuiz);
+          } else if (type === "QUIZ") {
+            filters.quiz = Number(IdDevoirOrQuiz);
+          }
+
+          console.log("====================================");
+          console.log("filters");
+
+          console.log(filters);
+          console.log("====================================");
+          // Rechercher les assignations à supprimer en utilisant les filtres construits
+          const assignationsToDelete = await strapi.entityService.findMany(
+            "api::assignation.assignation",
+            {
+              filters: filters,
+            }
+          );
+
+          console.log("====================================");
+          console.log("assignationsToDelete");
+
+          console.log(assignationsToDelete);
+          console.log("====================================");
+          // Si on trouve des assignations, on les supprime
+          if (assignationsToDelete.length > 0) {
+            for (const assignation of assignationsToDelete) {
+              await strapi.entityService.delete(
+                "api::assignation.assignation",
+                assignation.id
+              );
+            }
+            ctx.send({
+              message: `${assignationsToDelete.length} assignations supprimées avec succès`,
+            });
+          } else {
+            ctx.send({ message: "Aucune assignation trouvée à supprimer" });
+          }
         }
       } catch (error) {
         console.error("Erreur lors de la suppression des assignations:", error);
         ctx.throw(500, "Erreur lors de la suppression des assignations");
       }
     },
+
+    // async delete(ctx) {
+    //   try {
+    //     const { id } = ctx.params; // L'id du devoir ou du quiz
+    //     const { groupId, TypeElement, type } = ctx.query; // L'id du groupe ou de l'individu, le TypeElement (GROUP/INDIVIDUEL), et le type (DEVOIR/QUIZ)
+    //     const professeur = ctx.state.user.id;
+
+    //     console.log("--------------------------------------------");
+    //     console.log("deleteeee");
+    //     console.log(ctx.params);
+
+    //     console.log("------------------------------------------------");
+    //     console.log("ctx.query");
+    //     console.log(ctx.query);
+    //     console.log("------------------------------------------------");
+
+    //     // Construire les filtres pour la suppression
+    //     let filters = {
+    //       professeur: professeur,
+    //     };
+
+    //     // Filtrer en fonction du groupe ou de l'étudiant
+    //     if (TypeElement === "GROUP") {
+    //       filters.group = groupId;
+    //     } else if (TypeElement === "INDIVIDUEL") {
+    //       filters.etudiant = groupId; // groupId est utilisé ici pour l'id de l'étudiant dans le cas INDIVIDUEL
+    //     }
+
+    //     // Filtrer en fonction du type (DEVOIR ou QUIZ) et de l'id spécifique
+    //     if (type === "DEVOIR") {
+    //       filters.devoir = id;
+    //     } else if (type === "QUIZ") {
+    //       filters.quiz = id;
+    //     }
+
+    //     // Rechercher les assignations à supprimer en utilisant les filtres construits
+    //     const assignationsToDelete = await strapi.entityService.findMany(
+    //       "api::assignation.assignation",
+    //       {
+    //         filters: filters,
+    //       }
+    //     );
+
+    //     // Si on trouve des assignations, on les supprime
+    //     if (assignationsToDelete.length > 0) {
+    //       for (const assignation of assignationsToDelete) {
+    //         await strapi.entityService.delete(
+    //           "api::assignation.assignation",
+    //           assignation.id
+    //         );
+    //       }
+    //       ctx.send({
+    //         message: `${assignationsToDelete.length} assignations supprimées avec succès`,
+    //       });
+    //     } else {
+    //       ctx.send({ message: "Aucune assignation trouvée à supprimer" });
+    //     }
+    //   } catch (error) {
+    //     console.error("Erreur lors de la suppression des assignations:", error);
+    //     ctx.throw(500, "Erreur lors de la suppression des assignations");
+    //   }
+    // },
   })
 );

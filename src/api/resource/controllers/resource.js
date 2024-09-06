@@ -20,7 +20,7 @@ module.exports = createCoreController(
           pdf,
           video,
           link,
-          bookReference,
+          referenceLivre,
           userId,
         } = ctx.request.body;
 
@@ -41,7 +41,7 @@ module.exports = createCoreController(
             }))
           : [];
         console.log("====================================");
-        console.log(imageIds);
+        console.log(ctx.request.body);
         console.log("====================================");
         // Verify and associate the uploaded files
         const createData = {
@@ -49,7 +49,7 @@ module.exports = createCoreController(
           format: format,
           note: note,
           link: link,
-          bookReference: bookReference,
+          referenceLivre: referenceLivre,
           images: imageIds,
           audio: audio && audio.id ? audio.id : null,
           pdf: pdf && pdf.id ? pdf.id : null,
@@ -121,9 +121,6 @@ module.exports = createCoreController(
       try {
         const { page = 1, pageSize = 5, _q } = ctx.query;
 
-        console.log("====================================");
-        console.log(ctx.query);
-        console.log("====================================");
         // Initialisation des filtres
         const filters = {
           users_permissions_user: {
@@ -226,7 +223,7 @@ module.exports = createCoreController(
           pdf,
           video,
           link,
-          bookReference,
+          referenceLivre,
           userId,
         } = ctx.request.body;
 
@@ -286,7 +283,7 @@ module.exports = createCoreController(
           format: format,
           note: note,
           link: link,
-          bookReference: bookReference,
+          referenceLivre: referenceLivre,
           images: imageIds,
           audio: audio && audio.id ? audio.id : null,
           pdf: pdf && pdf.id ? pdf.id : null,
@@ -325,93 +322,5 @@ module.exports = createCoreController(
         ctx.throw(500, "Error updating resource");
       }
     },
-
-    // async update(ctx) {
-    //   try {
-    //     const {
-    //       resourceName,
-    //       format,
-    //       parcours,
-    //       module,
-    //       lesson,
-    //       note,
-    //       images,
-    //       audio,
-    //       pdf,
-    //       video,
-    //       link,
-    //       bookReference,
-    //       userId,
-    //     } = ctx.request.body;
-
-    //     const { id } = ctx.params;
-
-    //     // Check if the resource exists
-    //     const existingResource = await strapi.entityService.findOne(
-    //       "api::resource.resource",
-    //       id
-    //     );
-
-    //     if (!existingResource) {
-    //       return ctx.throw(404, "Resource not found");
-    //     }
-
-    //     // Check if the user exists
-    //     const user = await strapi
-    //       .query("plugin::users-permissions.user")
-    //       .findOne({ where: { id: userId } });
-
-    //     if (!user) {
-    //       return ctx.throw(404, "User not found");
-    //     }
-
-    //     console.log("====================================");
-    //     console.log(ctx.request.body);
-    //     console.log("====================================");
-
-    //     // Prepare images array, filtering out undefined values
-    //     const imageIds = images
-    //       ? images
-    //           .filter((image) => image !== undefined)
-    //           .map((image) => image.id)
-    //       : [];
-
-    //     // Verify and associate the uploaded files
-    //     const updateData = {
-    //       nom: resourceName,
-    //       format: format,
-    //       note: note,
-    //       link: link,
-    //       bookReference: bookReference,
-    //       images: imageIds,
-    //       audio: audio && audio.id ? audio.id : null,
-    //       pdf: pdf && pdf.id ? pdf.id : null,
-    //       video: video && video.id ? video.id : null,
-    //       parcours: parcours, // Ensure parcours is a valid ID
-    //       modules: module, // Ensure module is a valid ID
-    //       lessons: lesson, // Ensure lesson is a valid ID
-    //       users_permissions_user: userId,
-    //     };
-
-    //     console.log("Data to be updated:", updateData);
-
-    //     // Update the resource
-    //     const updatedResource = await strapi.entityService.update(
-    //       "api::resource.resource",
-    //       existingResource.id,
-    //       { data: updateData }
-    //     );
-
-    //     ctx.send({
-    //       message: "Resource updated successfully",
-    //       data: updatedResource,
-    //     });
-    //   } catch (error) {
-    //     console.error("Error updating resource:", error); // Log the error for debugging
-    //     ctx.throw(500, "Error updating resource");
-    //   }
-    // },
-
-    /************************************************************************/
   })
 );

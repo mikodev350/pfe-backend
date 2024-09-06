@@ -69,7 +69,7 @@ module.exports = {
     }
     const token = generateTemporaryToken(resource.id);
 
-    const link = `http://localhost:3000/dasboard/resources/access/${token}`;
+    const link = `http://localhost:3000/dashboard/resources/access/${token}`;
     ctx.send({ link });
   },
 
@@ -82,6 +82,9 @@ module.exports = {
     const { token } = ctx.params;
     try {
       // Verify the token
+      console.log("====================================");
+      console.log(token);
+      console.log("====================================");
       const decoded = verifyToken(token);
       if (!decoded) {
         throw new Error("Invalid token");

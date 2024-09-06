@@ -31,5 +31,10 @@ module.exports = {
       path: "/relations/accepted",
       handler: "relation.findAcceptedRelations",
     },
+    {
+      method: "GET",
+      path: "/relations/find-relation-friends",
+      handler: "relation.findRelationFriends",
+    },
   ],
 };

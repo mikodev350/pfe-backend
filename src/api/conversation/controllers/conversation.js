@@ -192,25 +192,29 @@ module.exports = ({ strapi }) => ({
 
     // Handle default profile picture for participants
     conversation.participants.forEach((participant) => {
-      if (
-        !participant.profil.photoProfil ||
-        !participant.profil.photoProfil.url
-      ) {
-        participant.profil.photoProfil = {
-          url: "/uploads/images_1_1f1e6e00bc.jpeg",
-        }; // Set default image URL
+      if (!participant.profil) {
+        participant.profil = {}; // S'assurer que 'profil' existe
+      }
+      if (!participant.profil.photoProfil) {
+        participant.profil.photoProfil = {}; // S'assurer que 'photoProfil' existe
+      }
+      if (!participant.profil.photoProfil.url) {
+        participant.profil.photoProfil.url =
+          "/uploads/images_1_1f1e6e00bc.jpeg"; // Définir l'image par défaut
       }
     });
 
     // Handle default profile picture for message senders (expediteurs)
     conversation.messages.forEach((message) => {
-      if (
-        !message.expediteur.profil.photoProfil ||
-        !message.expediteur.profil.photoProfil.url
-      ) {
-        message.expediteur.profil.photoProfil = {
-          url: "/uploads/images_1_1f1e6e00bc.jpeg",
-        }; // Set default image URL
+      if (!message.expediteur.profil) {
+        message.expediteur.profil = {}; // S'assurer que 'profil' existe
+      }
+      if (!message.expediteur.profil.photoProfil) {
+        message.expediteur.profil.photoProfil = {}; // S'assurer que 'photoProfil' existe
+      }
+      if (!message.expediteur.profil.photoProfil.url) {
+        message.expediteur.profil.photoProfil.url =
+          "/uploads/images_1_1f1e6e00bc.jpeg"; // Définir l'image par défaut
       }
     });
 

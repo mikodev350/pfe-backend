@@ -12,7 +12,7 @@ module.exports = {
     {
       method: "GET",
       path: "/fetch-conversation",
-      handler: "fetch-all.getIdOfConverstation",
+      handler: "fetch-all.getIdOfConversation",
       config: {
         policies: [],
         middlewares: [],

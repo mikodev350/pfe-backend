@@ -107,6 +107,8 @@ module.exports = ({ strapi }) => ({
       .sort(() => Math.random() - 0.5);
 
     console.log("====================================");
+    console.log("randomQuiz");
+
     console.log(randomQuiz);
     console.log("====================================");
     return randomQuiz;

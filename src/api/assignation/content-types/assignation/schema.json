@@ -31,8 +31,7 @@
     "quiz": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::quiz.quiz",
-      "mappedBy": "assignation"
+      "target": "api::quiz.quiz"
     },
     "group": {
       "type": "relation",

@@ -26,6 +26,12 @@ module.exports = {
         }
       );
 
+      console.log("====================================");
+      console.log("assignations");
+
+      console.log(assignations);
+      console.log("====================================");
+
       if (!assignations || assignations.length === 0) {
         return ctx.throw(404, "Aucune assignation trouvée.");
       }
@@ -231,15 +237,21 @@ module.exports = {
   // get recent resorucee if the existe
   async findRecentResource(ctx) {
     try {
+      const userId = ctx.state.user.id;
+
+      // Récupérer les ressources récentes de l'utilisateur
       const recentResources = await strapi
         .query("api::resource.resource")
         .findMany({
-          limit: 3, // Limit to 3 results
-          sort: { createdAt: "desc" }, // Sort by creation date (newest first)
-          select: ["nom", "createdAt"], // Select only the 'nom' and 'createdAt' fields
+          where: {
+            users_permissions_user: userId, // Utilisation de userId au lieu de usesId
+          },
+          limit: 3, // Limiter à 3 résultats
+          sort: { createdAt: "desc" }, // Trier par date de création (les plus récentes d'abord)
+          select: ["nom", "createdAt"], // Sélectionner seulement les champs 'nom' et 'createdAt'
         });
 
-      // Normalize the format of the returned data
+      // Normaliser le format des données retournées
       const formattedResources = recentResources.map((resource) => ({
         nom: resource.nom,
         date: new Date(resource.createdAt).toLocaleDateString("fr-FR", {

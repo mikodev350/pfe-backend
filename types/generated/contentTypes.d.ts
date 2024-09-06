@@ -1486,11 +1486,6 @@ export interface ApiQuizQuiz extends Schema.CollectionType {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
-    assignation: Attribute.Relation<
-      'api::quiz.quiz',
-      'oneToOne',
-      'api::assignation.assignation'
-    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

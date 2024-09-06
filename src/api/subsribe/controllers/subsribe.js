@@ -58,7 +58,7 @@ module.exports = {
 
   async notify(ctx) {
     try {
-      const { endpoint, message } = ctx.request.body; // Récupérer l'endpoint depuis le frontend
+      const { endpoint, message, url } = ctx.request.body; // Récupérer l'endpoint depuis le frontend
 
       console.log(ctx.request.body);
 
@@ -76,6 +76,7 @@ module.exports = {
       const payload = {
         title: "EasyLearn",
         body: `${message}`,
+        url: url,
       };
 
       const subscription = {

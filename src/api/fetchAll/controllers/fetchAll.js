@@ -70,46 +70,70 @@ module.exports = {
       );
     }
   },
-  async getIdOfConverstation(ctx) {
+  async getIdOfConversation(ctx) {
     try {
-      const { etudiantId } = ctx.query; // ID de l'utilisateur (étudiant) passé dans l'URL
+      const { etudiantId } = ctx.query; // ID de l'étudiant passé dans l'URL
       const loggedInUserId = ctx.state.user.id; // ID de l'utilisateur connecté (extrait du token)
 
-      console.log("====================================");
-      console.log(etudiantId);
-      console.log("====================================");
-      // Cherche toutes les conversations où les deux utilisateurs sont participants
+      // Affiche les IDs pour le débogage
+      console.log("ID Étudiant:", etudiantId);
+      console.log("ID Utilisateur connecté:", loggedInUserId);
+
       // Cherche les conversations où les deux utilisateurs sont participants
       const conversations = await strapi.db
         .query("api::conversation.conversation")
         .findMany({
           where: {
             participants: {
-              id: loggedInUserId, // L'utilisateur connecté est un participant
+              id: {
+                $in: [loggedInUserId, etudiantId], // Vérifie que les deux utilisateurs sont participants
+              },
             },
           },
           populate: {
-            participants: true, // On s'assure de peupler les participants pour les vérifier
+            participants: true, // Peuple les participants pour les vérifier
           },
         });
 
-      // Filtrer les conversations pour s'assurer que l'étudiant est bien dans la même conversation
-      const validConversation = conversations.find((conversation) =>
-        conversation.participants.some(
-          (participant) => participant.id.toString() === etudiantId
-        )
-      );
+      console.log("====================================");
+      console.log("conversations");
+
+      console.log(conversations);
+      console.log("====================================");
+      // Filtrer les conversations qui ont **exactement** les deux participants et personne d'autre
+      const validConversation = conversations.find((conversation) => {
+        const participantIds = conversation.participants.map((p) =>
+          p.id.toString()
+        );
+        return (
+          participantIds.includes(loggedInUserId.toString()) &&
+          participantIds.includes(etudiantId.toString()) &&
+          participantIds.length === 2 // Vérifie qu'il y a exactement 2 participants, ni plus ni moins
+        );
+      });
 
       if (!validConversation) {
-        return ctx.throw(404, "No common conversation found for these users");
+        return ctx.throw(
+          404,
+          "Aucune conversation commune trouvée pour ces deux utilisateurs"
+        );
       }
 
       // Renvoyer l'ID de la conversation valide trouvée
       const conversationId = validConversation.id;
 
+      // Retourne l'ID de la conversation trouvée
       ctx.send({ conversationId });
     } catch (err) {
-      ctx.throw(500, err);
+      // Gérer les erreurs et renvoyer une réponse appropriée
+      console.error(
+        "Erreur lors de la récupération de l'ID de la conversation :",
+        err
+      );
+      ctx.throw(
+        500,
+        "Une erreur est survenue lors de la récupération de la conversation"
+      );
     }
   },
 };
@@ -117,7 +141,7 @@ module.exports = {
 // "use strict";
 
 // module.exports = {
-//   async findAllData(ctx) {
+//   async findAllgetIdOfConverstationData(ctx) {
 //     try {
 //       const { _page = 1, _limit = 5, _q = "" } = ctx.query;
 //       const page = parseInt(_page, 10);

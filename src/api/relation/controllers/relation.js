@@ -136,24 +136,64 @@ module.exports = ({ strapi }) => ({
     const { id } = ctx.request.params;
     const user = ctx.state.user;
 
-    await strapi.db.query("api::relation.relation").delete({
-      where: {
-        $or: [
-          {
-            destinataire: user,
-            expediteur: { id },
-          },
-          {
-            expediteur: user,
-            destinataire: { id },
-          },
-        ],
-      },
-    });
+    try {
+      // Trouver la relation à supprimer
+      const relation = await strapi.db.query("api::relation.relation").findOne({
+        where: {
+          $or: [
+            {
+              destinataire: user.id,
+              expediteur: id,
+            },
+            {
+              expediteur: user.id,
+              destinataire: id,
+            },
+          ],
+        },
+      });
 
-    return ctx.send({ msg: "Request declined successfully" });
+      if (!relation) {
+        return ctx.throw(404, "Relation non trouvée");
+      }
+
+      // Vérifier si une conversation privée existe entre les deux utilisateurs
+      const existingConversation = await strapi.db
+        .query("api::conversation.conversation")
+        .findOne({
+          where: {
+            type: "PRIVATE",
+            participants: {
+              $and: [{ id: user.id }, { id: id }],
+            },
+          },
+        });
+
+      // Supprimer la conversation privée si elle existe
+      if (existingConversation) {
+        await strapi.db
+          .query("api::conversation.conversation")
+          .delete({ where: { id: existingConversation.id } });
+        console.log("Conversation supprimée:", existingConversation.id);
+      }
+
+      // Supprimer la relation
+      await strapi.db.query("api::relation.relation").delete({
+        where: { id: relation.id },
+      });
+
+      return ctx.send({
+        msg: existingConversation
+          ? "Relation et conversation supprimées avec succès"
+          : "Relation supprimée avec succès, aucune conversation existante",
+      });
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la relation:", error);
+      return ctx.internalServerError(
+        "Erreur lors de la suppression de la relation"
+      );
+    }
   },
-
   async findPendingRelation(ctx) {
     try {
       const user = ctx.state.user;
@@ -228,6 +268,50 @@ module.exports = ({ strapi }) => ({
         500,
         "Une erreur est survenue lors de la récupération des relations acceptées"
       );
+    }
+  },
+
+  async findRelationFriends(ctx) {
+    try {
+      const user = ctx.state.user; // Utilisateur actuellement connecté
+
+      // Trouver toutes les relations d'amitié (AMIS) pour cet utilisateur
+      const relations = await strapi.db
+        .query("api::relation.relation")
+        .findMany({
+          where: {
+            type: AMIS, // Filtrer par type d'amitié
+            status: "acceptée", // Seulement les relations acceptées
+            $or: [
+              { expediteur: user.id }, // L'utilisateur est l'expéditeur
+              { destinataire: user.id }, // Ou l'utilisateur est le destinataire
+            ],
+          },
+          populate: {
+            expediteur: {
+              select: ["id", "username", "email"], // Infos sur l'expéditeur
+            },
+            destinataire: {
+              select: ["id", "username", "email"], // Infos sur le destinataire
+            },
+          },
+        });
+
+      // Filtrer les relations pour ne renvoyer que l'autre utilisateur (pas le token)
+      const filteredRelations = relations.map((relation) => {
+        if (relation.expediteur.id === user.id) {
+          // Si l'utilisateur connecté est l'expéditeur, on renvoie le destinataire
+          return relation.destinataire;
+        } else {
+          // Si l'utilisateur connecté est le destinataire, on renvoie l'expéditeur
+          return relation.expediteur;
+        }
+      });
+      // Retourner les relations filtrées
+      return ctx.send(filteredRelations);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des amis:", error);
+      ctx.throw(500, "Erreur lors de la récupération des amis");
     }
   },
 });

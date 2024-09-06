@@ -155,14 +155,14 @@ module.exports = {
           );
 
           /***************************************************************************/
-          socket.on("end-quiz", async ({ assignationId }) => {
+          socket.on("end-quiz", async ({ assignationId, examId }) => {
             try {
               // Récupérer les questions et les IDs des réponses correctes pour l'assignation
               const filteredQuestionCount = await strapi.db
                 .query("api::quiz.quiz")
                 .findOne({
                   where: {
-                    assignation: assignationId,
+                    id: examId,
                   },
                   populate: {
                     questions: {
@@ -178,6 +178,8 @@ module.exports = {
                     },
                   },
                 });
+
+              console.log(filteredQuestionCount);
 
               // Calculer le nombre total de questions
               let totalQuestion = filteredQuestionCount?.questions?.length || 0;
