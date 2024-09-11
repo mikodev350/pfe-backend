@@ -40,9 +40,7 @@ module.exports = createCoreController(
               id: image.id,
             }))
           : [];
-        console.log("====================================");
-        console.log(ctx.request.body);
-        console.log("====================================");
+
         // Verify and associate the uploaded files
         const createData = {
           nom: nom,
@@ -157,7 +155,6 @@ module.exports = createCoreController(
         ]);
 
         const totalPages = Math.ceil(total / pageSize);
-
         ctx.send({
           data: resources,
           total,

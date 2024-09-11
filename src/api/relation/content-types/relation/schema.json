@@ -37,6 +37,11 @@
         "COACHING"
       ],
       "required": true
+    },
+    "conversation": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::conversation.conversation"
     }
   }
 }

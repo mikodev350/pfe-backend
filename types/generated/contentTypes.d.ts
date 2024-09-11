@@ -801,7 +801,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'api::resource.resource'
     >;
     phoneNumber: Attribute.BigInteger;
-    postalCode: Attribute.BigInteger;
     wilaya: Attribute.String;
     dateOfBirth: Attribute.Date;
     address: Attribute.String;
@@ -1521,6 +1520,11 @@ export interface ApiRelationRelation extends Schema.CollectionType {
     status: Attribute.Enumeration<['attente', 'accept\u00E9e']> &
       Attribute.DefaultTo<'attente'>;
     type: Attribute.Enumeration<['AMIS', 'COACHING']> & Attribute.Required;
+    conversation: Attribute.Relation<
+      'api::relation.relation',
+      'oneToOne',
+      'api::conversation.conversation'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

@@ -7,6 +7,10 @@ module.exports = {
     try {
       const studentId = ctx.state.user.id;
 
+      console.log("====================================");
+      console.log(studentId);
+      console.log("====================================");
+
       const assignations = await strapi.entityService.findMany(
         "api::assignation.assignation",
         {
@@ -28,12 +32,12 @@ module.exports = {
 
       console.log("====================================");
       console.log("assignations");
-
       console.log(assignations);
       console.log("====================================");
 
       if (!assignations || assignations.length === 0) {
-        return ctx.throw(404, "Aucune assignation trouvée.");
+        // Return an empty array instead of throwing an error
+        return ctx.send([]);
       }
 
       const transformedData = await Promise.all(
@@ -43,6 +47,7 @@ module.exports = {
 
           if (assignation.devoir && assignation.devoir.titre) {
             titre = assignation.devoir.titre;
+
             // Check if a response exists for this assignment
             const reponseEtudiant = await strapi.entityService.findMany(
               "api::reponse-etudiant.reponse-etudiant",
@@ -68,6 +73,7 @@ module.exports = {
             }
           } else if (assignation.quiz && assignation.quiz.titre) {
             titre = assignation.quiz.titre;
+
             // Check if a score exists for this assignment
             if (assignation.score) {
               status = "Fait";
@@ -92,6 +98,7 @@ module.exports = {
       ctx.throw(500, "Erreur lors de la récupération des assignations");
     }
   },
+
   /********************************************************************************/
   // /make the noteeee /
   async assignNote(ctx) {
@@ -248,11 +255,12 @@ module.exports = {
           },
           limit: 3, // Limiter à 3 résultats
           sort: { createdAt: "desc" }, // Trier par date de création (les plus récentes d'abord)
-          select: ["nom", "createdAt"], // Sélectionner seulement les champs 'nom' et 'createdAt'
+          select: ["nom", "id", "createdAt"], // Sélectionner seulement les champs 'nom' et 'createdAt'
         });
 
       // Normaliser le format des données retournées
       const formattedResources = recentResources.map((resource) => ({
+        id: resource.id,
         nom: resource.nom,
         date: new Date(resource.createdAt).toLocaleDateString("fr-FR", {
           year: "numeric",

@@ -104,9 +104,6 @@
     "phoneNumber": {
       "type": "biginteger"
     },
-    "postalCode": {
-      "type": "biginteger"
-    },
     "wilaya": {
       "type": "string"
     },

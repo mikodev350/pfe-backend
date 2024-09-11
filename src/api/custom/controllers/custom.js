@@ -145,6 +145,8 @@ module.exports = {
         users_permissions_user: ctx.state.user.id,
       };
 
+      console.log(resource);
+
       // Create a new resource with the specified data
       const newResource = await strapi.entityService.create(
         "api::resource.resource",
@@ -152,6 +154,8 @@ module.exports = {
           data: createData,
         }
       );
+      console.log("newResource");
+      console.log(newResource);
 
       // Send the new resource back
       ctx.send(newResource);

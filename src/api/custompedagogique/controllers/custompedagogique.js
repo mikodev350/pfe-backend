@@ -5,8 +5,6 @@ module.exports = ({ strapi }) => ({
     try {
       const user = ctx.state.user; // Utilisateur actuel (professeur)
 
-      console.log("getAllStudents");
-
       // Construire la condition de filtrage
       const conditions = {
         destinataire: user.id,
@@ -25,6 +23,7 @@ module.exports = ({ strapi }) => ({
                 profil: { populate: { photoProfil: true } },
               },
             },
+            conversation: true, // Make sure conversation is populated here
           },
         });
 
@@ -36,6 +35,7 @@ module.exports = ({ strapi }) => ({
         id: student.expediteur.id,
         username: student.expediteur.username,
         email: student.expediteur.email,
+        conversationId: student?.conversation?.id || null, // Safely access the conversation ID
         photoProfil:
           student.expediteur.profil?.photoProfil?.url || "default-avatar-url",
       }));

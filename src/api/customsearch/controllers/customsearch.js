@@ -162,7 +162,7 @@ module.exports = {
         $and: [
           { status: "acceptée" },
           {
-            $or: [{ type: "FRIEND" }, { type: "PROFESIONAL" }],
+            $or: [{ type: "AMIS" }, { type: "COACHING" }],
           },
           {
             $or: [{ expediteur: user.id }, { destinataire: user.id }],
