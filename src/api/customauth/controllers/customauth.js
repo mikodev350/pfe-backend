@@ -24,21 +24,11 @@ module.exports = {
         );
     }
 
-    console.log("====================================");
-    console.log("roleId");
-
-    console.log(roleId);
-    console.log("====================================");
     try {
       const existingRole = await strapi
         .query("plugin::users-permissions.role")
         .findOne({ where: { id: roleId } });
 
-      console.log("====================================");
-      console.log("existingRole");
-
-      console.log(existingRole);
-      console.log("====================================");
       if (!existingRole) {
         return ctx.badRequest("Role does not exist");
       }
@@ -46,11 +36,6 @@ module.exports = {
       const updatedUser = await strapi
         .query("plugin::users-permissions.user")
         .update({ where: { id: userId }, data: { role: roleId } });
-
-      console.log(updatedUser);
-
-      // updatedUser.password;
-      // updatedUser.resetPasswordToken;
 
       return ctx.send({ updatedUser, role: existingRole.name });
     } catch (err) {
@@ -129,10 +114,6 @@ module.exports = {
       if (!user) {
         return ctx.notFound("No user found with this email");
       }
-
-      console.log("====================================");
-      console.log(user);
-      console.log("====================================");
 
       // Instead of sending an email, return the token in the response (for simplicity)
       return ctx.send({
